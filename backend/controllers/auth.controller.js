@@ -1,0 +1,217 @@
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import pool from '../config/db.js';
+
+export const register = async (req, res) => {
+  const { name, email, password } = req.body;
+  const normalizedName = String(name || '').trim();
+  const normalizedEmail = String(email || '').trim().toLowerCase();
+  const normalizedPassword = String(password || '');
+
+  if (!normalizedName || !normalizedEmail || !normalizedPassword) {
+    return res.status(400).json({ error: 'Name, email, and password are required.' });
+  }
+
+  if (normalizedPassword.length < 8) {
+    return res.status(400).json({ error: 'Password must be at least 8 characters long.' });
+  }
+
+  const client = await pool.connect();
+
+  try {
+    await client.query('BEGIN');
+
+    const userCheck = await client.query('SELECT id FROM users WHERE email = $1', [normalizedEmail]);
+    if (userCheck.rows.length > 0) {
+      await client.query('ROLLBACK');
+      return res.status(400).json({ error: 'Email already registered.' });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const passwordHash = await bcrypt.hash(normalizedPassword, salt);
+
+    const newUser = await client.query(
+      'INSERT INTO users (name, email, password_hash) VALUES ($1, $2, $3) RETURNING id, name, email, created_at',
+      [normalizedName, normalizedEmail, passwordHash]
+    );
+
+    await client.query(
+      'INSERT INTO user_settings (user_id, currency, theme) VALUES ($1, $2, $3)',
+      [newUser.rows[0].id, 'IDR', 'light']
+    );
+
+    await client.query('COMMIT');
+
+    return res.status(201).json({
+      message: 'Registration successful.',
+      user: newUser.rows[0],
+    });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('Register Error:', error);
+    return res.status(500).json({ error: 'Internal server error.' });
+  } finally {
+    client.release();
+  }
+};
+
+export const login = async (req, res) => {
+  const { email, password } = req.body;
+  const normalizedEmail = String(email || '').trim().toLowerCase();
+  const normalizedPassword = String(password || '');
+  const jwtSecret = process.env.JWT_SECRET;
+
+  if (!normalizedEmail || !normalizedPassword) {
+    return res.status(400).json({ error: 'Email and password are required.' });
+  }
+
+  if (!jwtSecret) {
+    return res.status(500).json({ error: 'Server auth configuration is invalid.' });
+  }
+
+  try {
+    const userResult = await pool.query('SELECT * FROM users WHERE email = $1', [normalizedEmail]);
+    if (userResult.rows.length === 0) {
+      return res.status(400).json({ error: 'Invalid email or password.' });
+    }
+
+    const user = userResult.rows[0];
+    const isMatch = await bcrypt.compare(normalizedPassword, user.password_hash);
+    if (!isMatch) {
+      return res.status(400).json({ error: 'Invalid email or password.' });
+    }
+
+    const token = jwt.sign({ id: user.id, email: user.email }, jwtSecret, { expiresIn: '7d' });
+
+    return res.status(200).json({
+      message: 'Login successful.',
+      token,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        created_at: user.created_at,
+      },
+    });
+  } catch (error) {
+    console.error('Login Error:', error);
+    return res.status(500).json({ error: 'Internal server error.' });
+  }
+};
+
+export const getMe = async (req, res) => {
+  try {
+    const userResult = await pool.query(
+      'SELECT id, name, email, created_at FROM users WHERE id = $1',
+      [req.user.id]
+    );
+
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found.' });
+    }
+
+    return res.status(200).json({ user: userResult.rows[0] });
+  } catch (error) {
+    console.error('Get Me Error:', error);
+    return res.status(500).json({ error: 'Internal server error.' });
+  }
+};
+
+export const updateMe = async (req, res) => {
+  const userId = req.user.id;
+  const rawName = req.body?.name;
+  const rawEmail = req.body?.email;
+
+  const updates = {};
+  if (rawName !== undefined) {
+    updates.name = String(rawName).trim();
+  }
+  if (rawEmail !== undefined) {
+    updates.email = String(rawEmail).trim().toLowerCase();
+  }
+
+  if (!updates.name && !updates.email) {
+    return res.status(400).json({ error: 'At least one field (name or email) is required.' });
+  }
+
+  if (updates.name !== undefined && updates.name.length < 2) {
+    return res.status(400).json({ error: 'Name must be at least 2 characters long.' });
+  }
+
+  if (updates.email !== undefined && !updates.email.includes('@')) {
+    return res.status(400).json({ error: 'Invalid email format.' });
+  }
+
+  try {
+    if (updates.email !== undefined) {
+      const duplicateEmail = await pool.query(
+        'SELECT id FROM users WHERE email = $1 AND id <> $2',
+        [updates.email, userId]
+      );
+      if (duplicateEmail.rows.length > 0) {
+        return res.status(400).json({ error: 'Email already registered.' });
+      }
+    }
+
+    const currentUser = await pool.query('SELECT id, name, email FROM users WHERE id = $1', [userId]);
+    if (currentUser.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found.' });
+    }
+
+    const finalName = updates.name ?? currentUser.rows[0].name;
+    const finalEmail = updates.email ?? currentUser.rows[0].email;
+
+    const updatedUser = await pool.query(
+      'UPDATE users SET name = $1, email = $2 WHERE id = $3 RETURNING id, name, email, created_at',
+      [finalName, finalEmail, userId]
+    );
+
+    return res.status(200).json({
+      message: 'Profile updated successfully.',
+      user: updatedUser.rows[0],
+    });
+  } catch (error) {
+    console.error('Update Me Error:', error);
+    return res.status(500).json({ error: 'Internal server error.' });
+  }
+};
+
+export const changePassword = async (req, res) => {
+  const userId = req.user.id;
+  const currentPassword = String(req.body?.currentPassword || '');
+  const newPassword = String(req.body?.newPassword || '');
+
+  if (!currentPassword || !newPassword) {
+    return res.status(400).json({ error: 'Current password and new password are required.' });
+  }
+
+  if (newPassword.length < 8) {
+    return res.status(400).json({ error: 'New password must be at least 8 characters long.' });
+  }
+
+  try {
+    const userResult = await pool.query('SELECT id, password_hash FROM users WHERE id = $1', [userId]);
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found.' });
+    }
+
+    const user = userResult.rows[0];
+    const isCurrentValid = await bcrypt.compare(currentPassword, user.password_hash);
+    if (!isCurrentValid) {
+      return res.status(400).json({ error: 'Current password is incorrect.' });
+    }
+
+    const isSamePassword = await bcrypt.compare(newPassword, user.password_hash);
+    if (isSamePassword) {
+      return res.status(400).json({ error: 'New password must be different from current password.' });
+    }
+
+    const newHash = await bcrypt.hash(newPassword, 10);
+    await pool.query('UPDATE users SET password_hash = $1 WHERE id = $2', [newHash, userId]);
+
+    return res.status(200).json({ message: 'Password updated successfully.' });
+  } catch (error) {
+    console.error('Change Password Error:', error);
+    return res.status(500).json({ error: 'Internal server error.' });
+  }
+};

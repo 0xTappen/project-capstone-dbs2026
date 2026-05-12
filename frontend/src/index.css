@@ -1,0 +1,45 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    @apply bg-gray-50 text-gray-900 font-sans;
+  }
+}
+
+body {
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+body.dark-mode {
+  background-color: #0f172a !important;
+  color: #e2e8f0 !important;
+}
+
+body.dark-mode .bg-gray-50 {
+  background-color: #0f172a !important;
+}
+
+body.dark-mode .bg-white {
+  background-color: #111827 !important;
+}
+
+body.dark-mode .text-gray-900 {
+  color: #f3f4f6 !important;
+}
+
+body.dark-mode .text-gray-700,
+body.dark-mode .text-gray-600,
+body.dark-mode .text-gray-500 {
+  color: #cbd5e1 !important;
+}
+
+body.dark-mode .border-gray-50,
+body.dark-mode .border-gray-100,
+body.dark-mode .border-gray-200,
+body.dark-mode .border-gray-300 {
+  border-color: #374151 !important;
+}
+
+body.dark-mode .bg-emerald-50 {
+  background-color: rgba(16, 185, 129, 0.14) !important;
+}
