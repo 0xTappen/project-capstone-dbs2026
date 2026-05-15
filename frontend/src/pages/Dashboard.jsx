@@ -3,6 +3,7 @@ import { ArrowUpRight, ArrowDownRight, Wallet, TrendingUp, CreditCard, Activity,
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Link } from 'react-router-dom';
 import api from '../lib/api';
+import { getProfileAvatarSrc } from '../lib/profileAvatar';
 
 const MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -38,7 +39,7 @@ function normalizeTransactionType(type) {
 export default function Dashboard() {
   const currentYear = new Date().getFullYear();
   const [selectedYear, setSelectedYear] = useState(currentYear);
-  const [userName, setUserName] = useState('Pengguna');
+  const [userProfile, setUserProfile] = useState({ name: 'Pengguna', avatar_url: '' });
   const [transactions, setTransactions] = useState([]);
   const [bills, setBills] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -56,7 +57,10 @@ export default function Dashboard() {
           api.get('/bills'),
         ]);
 
-        setUserName(meRes.data?.user?.name || 'Pengguna');
+        setUserProfile({
+          name: meRes.data?.user?.name || 'Pengguna',
+          avatar_url: meRes.data?.user?.avatar_url || '',
+        });
         setTransactions(Array.isArray(transactionsRes.data) ? transactionsRes.data : []);
         setBills(Array.isArray(billsRes.data) ? billsRes.data : []);
       } catch (err) {
@@ -132,7 +136,7 @@ export default function Dashboard() {
       <header className="flex flex-col gap-4 md:flex-row md:justify-between md:items-center">
         <div>
           <h1 className="text-2xl md:text-3xl font-extrabold text-gray-900 tracking-tight">Dashboard</h1>
-          <p className="text-gray-500 font-medium mt-1">Selamat datang kembali, {userName}!</p>
+          <p className="text-gray-500 font-medium mt-1">Selamat datang kembali, {userProfile.name}!</p>
         </div>
         <div className="flex items-center justify-between md:justify-end w-full md:w-auto gap-3">
           <Link to="/transactions" className="flex items-center justify-center space-x-2 bg-white border border-gray-200 text-gray-700 px-4 py-2 rounded-xl font-bold hover:bg-gray-50 transition shadow-sm w-full sm:w-auto">
@@ -140,7 +144,7 @@ export default function Dashboard() {
             <span>Catat Transaksi</span>
           </Link>
           <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 font-bold border-2 border-emerald-500 overflow-hidden shadow-sm hover:scale-105 transition-transform cursor-pointer">
-            <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${userName}`} alt="User" className="w-full h-full object-cover" />
+            <img src={getProfileAvatarSrc(userProfile)} alt="User" className="w-full h-full object-cover" />
           </div>
         </div>
       </header>

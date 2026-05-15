@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { User, Moon, Lock, Tag, ChevronRight, LogOut, Smartphone, Sun, Monitor } from 'lucide-react';
 import api from '../lib/api';
 import { readDevices, saveDevices } from '../lib/settingsDevices';
+import { getProfileAvatarSrc } from '../lib/profileAvatar';
 
 const THEME_MODE_KEY = 'theme_mode';
 
@@ -21,7 +22,7 @@ function getResolvedSystemTheme() {
 export default function Settings() {
   const navigate = useNavigate();
 
-  const [userData, setUserData] = useState({ name: 'Pengguna', email: 'user@example.com' });
+  const [userData, setUserData] = useState({ name: 'Pengguna', email: 'user@example.com', avatar_url: '' });
   const [themeMode, setThemeMode] = useState(() => getThemeModeFromStorage());
   const [activeTheme, setActiveTheme] = useState(() => (getThemeModeFromStorage() === 'system' ? getResolvedSystemTheme() : getThemeModeFromStorage()));
   const [isSavingTheme, setIsSavingTheme] = useState(false);
@@ -127,7 +128,7 @@ export default function Settings() {
       {success && <p className="text-sm text-emerald-600 font-bold">{success}</p>}
       <div className="bg-white p-4 sm:p-6 rounded-[2rem] border border-gray-100 shadow-sm flex items-center gap-4 sm:gap-6">
         <div className="w-20 h-20 rounded-full bg-emerald-100 border-4 border-emerald-50 flex items-center justify-center overflow-hidden shadow-sm shrink-0">
-          <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${userData.name}`} alt="User" className="w-full h-full object-cover" />
+          <img src={getProfileAvatarSrc(userData)} alt="User" className="w-full h-full object-cover" />
         </div>
         <div className="min-w-0 flex-1">
           <h2 className="text-lg sm:text-xl font-bold text-gray-900 break-words leading-tight">{userData.name}</h2>

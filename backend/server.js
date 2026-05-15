@@ -85,6 +85,7 @@ const startServer = async () => {
   try {
     await pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS phone VARCHAR(20)');
     await pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS address VARCHAR(255)');
+    await pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url TEXT');
     await pool.query('SELECT 1');
     app.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);

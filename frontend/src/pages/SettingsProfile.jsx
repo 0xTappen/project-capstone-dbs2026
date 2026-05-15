@@ -1,14 +1,49 @@
 import { useEffect, useState } from 'react';
-import { ChevronLeft, Save, User } from 'lucide-react';
+import { ChevronLeft, Save, User, Camera, Trash2 } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import api from '../lib/api';
+import { getProfileAvatarSrc } from '../lib/profileAvatar';
+
+const MAX_AVATAR_FILE_SIZE = 5 * 1024 * 1024;
+const AVATAR_PREVIEW_MAX_SIZE = 320;
+
+function loadImageFromFile(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const image = new Image();
+      image.onload = () => resolve(image);
+      image.onerror = () => reject(new Error('Gagal membaca gambar.'));
+      image.src = reader.result;
+    };
+    reader.onerror = () => reject(new Error('Gagal membaca file.'));
+    reader.readAsDataURL(file);
+  });
+}
+
+async function fileToCompressedDataUrl(file) {
+  const image = await loadImageFromFile(file);
+  const ratio = Math.min(1, AVATAR_PREVIEW_MAX_SIZE / Math.max(image.width, image.height));
+  const width = Math.max(1, Math.round(image.width * ratio));
+  const height = Math.max(1, Math.round(image.height * ratio));
+
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+
+  const context = canvas.getContext('2d');
+  context.drawImage(image, 0, 0, width, height);
+
+  return canvas.toDataURL('image/jpeg', 0.82);
+}
 
 export default function SettingsProfile() {
   const [searchParams] = useSearchParams();
   const isCompletionRequired = searchParams.get('complete') === '1';
-  const [form, setForm] = useState({ name: '', email: '', phone: '', address: '' });
+  const [form, setForm] = useState({ name: '', email: '', phone: '', address: '', avatar_url: '' });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
@@ -24,6 +59,7 @@ export default function SettingsProfile() {
             email: user.email || '',
             phone: user.phone || '',
             address: user.address || '',
+            avatar_url: user.avatar_url || '',
           });
         }
       } catch (err) {
@@ -46,6 +82,7 @@ export default function SettingsProfile() {
       email: form.email.trim().toLowerCase(),
       phone: form.phone.trim(),
       address: form.address.trim(),
+      avatar_url: form.avatar_url || null,
     };
 
     if (!payload.name || !payload.email) {
@@ -68,6 +105,7 @@ export default function SettingsProfile() {
           email: updatedUser.email || '',
           phone: updatedUser.phone || '',
           address: updatedUser.address || '',
+          avatar_url: updatedUser.avatar_url || '',
         });
       }
       window.dispatchEvent(new Event('profile-updated'));
@@ -77,6 +115,37 @@ export default function SettingsProfile() {
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleAvatarFileChange = async (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      setError('File harus berupa gambar.');
+      return;
+    }
+    if (file.size > MAX_AVATAR_FILE_SIZE) {
+      setError('Ukuran gambar maksimal 5MB.');
+      return;
+    }
+
+    setError('');
+    setIsUploadingAvatar(true);
+
+    try {
+      const avatarDataUrl = await fileToCompressedDataUrl(file);
+      setForm((prev) => ({ ...prev, avatar_url: avatarDataUrl }));
+    } catch {
+      setError('Gagal memproses gambar profil.');
+    } finally {
+      setIsUploadingAvatar(false);
+    }
+  };
+
+  const handleRemoveAvatar = () => {
+    setForm((prev) => ({ ...prev, avatar_url: '' }));
   };
 
   return (
@@ -109,6 +178,40 @@ export default function SettingsProfile() {
           <p className="text-sm text-gray-500">Memuat data profil...</p>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-2">Foto Profil</label>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                <div className="w-24 h-24 rounded-full bg-emerald-100 border-4 border-emerald-50 overflow-hidden shrink-0">
+                  <img
+                    src={getProfileAvatarSrc({ name: form.name || 'Pengguna', avatar_url: form.avatar_url })}
+                    alt="Foto Profil"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <label className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-white bg-emerald-600 hover:bg-emerald-700 cursor-pointer transition">
+                    <Camera className="w-4 h-4" />
+                    {isUploadingAvatar ? 'Memproses...' : 'Ganti Foto'}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleAvatarFileChange}
+                      disabled={isUploadingAvatar || saving}
+                      className="hidden"
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    onClick={handleRemoveAvatar}
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-red-600 bg-red-50 hover:bg-red-100 border border-red-100 transition"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Hapus Foto
+                  </button>
+                </div>
+              </div>
+            </div>
+
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-2">Nama</label>
               <input

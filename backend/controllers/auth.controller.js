@@ -4,6 +4,7 @@ import pool from '../config/db.js';
 import ensureUserProfileColumns from '../utils/ensureUserProfileColumns.js';
 
 const PHONE_REGEX = /^\+?[0-9()\-\s]{7,20}$/;
+const MAX_AVATAR_URL_LENGTH = 1800000;
 
 function normalizeOptionalField(value) {
   if (value === undefined) {
@@ -14,6 +15,34 @@ function normalizeOptionalField(value) {
   return normalized || null;
 }
 
+function normalizeAvatarUrl(value) {
+  if (value === undefined) {
+    return { value: undefined };
+  }
+
+  if (value === null) {
+    return { value: null };
+  }
+
+  const normalized = String(value).trim();
+  if (!normalized) {
+    return { value: null };
+  }
+
+  const isDataImage = normalized.startsWith('data:image/') && normalized.includes(';base64,');
+  const isRemoteUrl = /^https?:\/\//i.test(normalized);
+
+  if (!isDataImage && !isRemoteUrl) {
+    return { error: 'Avatar must be a valid image URL or data URL.' };
+  }
+
+  if (normalized.length > MAX_AVATAR_URL_LENGTH) {
+    return { error: 'Avatar image is too large.' };
+  }
+
+  return { value: normalized };
+}
+
 export const register = async (req, res) => {
   const { name, email, password } = req.body;
   const normalizedName = String(name || '').trim();
@@ -21,6 +50,7 @@ export const register = async (req, res) => {
   const normalizedPassword = String(password || '');
   const normalizedPhone = normalizeOptionalField(req.body?.phone);
   const normalizedAddress = normalizeOptionalField(req.body?.address);
+  const normalizedAvatar = normalizeAvatarUrl(req.body?.avatar_url);
 
   if (!normalizedName || !normalizedEmail || !normalizedPassword) {
     return res.status(400).json({ error: 'Name, email, and password are required.' });
@@ -42,6 +72,10 @@ export const register = async (req, res) => {
     return res.status(400).json({ error: 'Address is too long.' });
   }
 
+  if (normalizedAvatar.error) {
+    return res.status(400).json({ error: normalizedAvatar.error });
+  }
+
   const client = await pool.connect();
 
   try {
@@ -58,13 +92,13 @@ export const register = async (req, res) => {
     const passwordHash = await bcrypt.hash(normalizedPassword, salt);
 
     const newUser = await client.query(
-      'INSERT INTO users (name, email, password_hash, phone, address) VALUES ($1, $2, $3, $4, $5) RETURNING id, name, email, phone, address, created_at',
-      [normalizedName, normalizedEmail, passwordHash, normalizedPhone, normalizedAddress]
+      'INSERT INTO users (name, email, password_hash, phone, address, avatar_url) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, name, email, phone, address, avatar_url, created_at',
+      [normalizedName, normalizedEmail, passwordHash, normalizedPhone, normalizedAddress, normalizedAvatar.value ?? null]
     );
 
     await client.query(
       'INSERT INTO user_settings (user_id, currency, theme) VALUES ($1, $2, $3)',
-      [newUser.rows[0].id, 'IDR', 'light']
+      [newUser.rows[0].id, 'IDR', 'system']
     );
 
     await client.query('COMMIT');
@@ -120,6 +154,7 @@ export const login = async (req, res) => {
         email: user.email,
         phone: user.phone,
         address: user.address,
+        avatar_url: user.avatar_url,
         created_at: user.created_at,
       },
     });
@@ -133,7 +168,7 @@ export const getMe = async (req, res) => {
   try {
     await ensureUserProfileColumns();
     const userResult = await pool.query(
-      'SELECT id, name, email, phone, address, created_at FROM users WHERE id = $1',
+      'SELECT id, name, email, phone, address, avatar_url, created_at FROM users WHERE id = $1',
       [req.user.id]
     );
 
@@ -154,10 +189,11 @@ export const updateMe = async (req, res) => {
   const rawEmail = req.body?.email;
   const rawPhone = req.body?.phone;
   const rawAddress = req.body?.address;
+  const rawAvatarUrl = req.body?.avatar_url;
 
-  const hasAnyField = [rawName, rawEmail, rawPhone, rawAddress].some((value) => value !== undefined);
+  const hasAnyField = [rawName, rawEmail, rawPhone, rawAddress, rawAvatarUrl].some((value) => value !== undefined);
   if (!hasAnyField) {
-    return res.status(400).json({ error: 'At least one field (name, email, phone, or address) is required.' });
+    return res.status(400).json({ error: 'At least one field (name, email, phone, address, or avatar_url) is required.' });
   }
 
   const updates = {};
@@ -196,6 +232,14 @@ export const updateMe = async (req, res) => {
     }
   }
 
+  if (rawAvatarUrl !== undefined) {
+    const normalizedAvatar = normalizeAvatarUrl(rawAvatarUrl);
+    if (normalizedAvatar.error) {
+      return res.status(400).json({ error: normalizedAvatar.error });
+    }
+    updates.avatar_url = normalizedAvatar.value;
+  }
+
   try {
     await ensureUserProfileColumns();
 
@@ -209,7 +253,7 @@ export const updateMe = async (req, res) => {
       }
     }
 
-    const currentUser = await pool.query('SELECT id, name, email, phone, address FROM users WHERE id = $1', [userId]);
+    const currentUser = await pool.query('SELECT id, name, email, phone, address, avatar_url FROM users WHERE id = $1', [userId]);
     if (currentUser.rows.length === 0) {
       return res.status(404).json({ error: 'User not found.' });
     }
@@ -218,10 +262,11 @@ export const updateMe = async (req, res) => {
     const finalEmail = updates.email ?? currentUser.rows[0].email;
     const finalPhone = updates.phone !== undefined ? updates.phone : currentUser.rows[0].phone;
     const finalAddress = updates.address !== undefined ? updates.address : currentUser.rows[0].address;
+    const finalAvatarUrl = updates.avatar_url !== undefined ? updates.avatar_url : currentUser.rows[0].avatar_url;
 
     const updatedUser = await pool.query(
-      'UPDATE users SET name = $1, email = $2, phone = $3, address = $4 WHERE id = $5 RETURNING id, name, email, phone, address, created_at',
-      [finalName, finalEmail, finalPhone, finalAddress, userId]
+      'UPDATE users SET name = $1, email = $2, phone = $3, address = $4, avatar_url = $5 WHERE id = $6 RETURNING id, name, email, phone, address, avatar_url, created_at',
+      [finalName, finalEmail, finalPhone, finalAddress, finalAvatarUrl, userId]
     );
 
     return res.status(200).json({

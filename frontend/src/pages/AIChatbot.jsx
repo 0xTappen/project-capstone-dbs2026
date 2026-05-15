@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import {
   Bot,
   Send,
-  User,
   Plus,
   Pencil,
   Trash2,
@@ -14,6 +13,7 @@ import {
 } from 'lucide-react';
 import api from '../lib/api';
 import AppDialog from '../components/AppDialog';
+import { getProfileAvatarSrc } from '../lib/profileAvatar';
 
 function mapHistory(messages = []) {
   return messages.map((item) => ({
@@ -37,6 +37,7 @@ function formatSessionTime(dateString) {
 export default function AIChatbot() {
   const [sessions, setSessions] = useState([]);
   const [activeSessionId, setActiveSessionId] = useState(null);
+  const [userProfile, setUserProfile] = useState({ name: 'Pengguna', avatar_url: '' });
 
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
@@ -115,9 +116,21 @@ export default function AIChatbot() {
   useEffect(() => {
     const bootstrap = async () => {
       setError('');
-      const sessionId = await loadSessions();
-      if (sessionId) {
-        await loadHistory(sessionId);
+      try {
+        const meResponse = await api.get('/auth/me');
+        if (meResponse.data?.user) {
+          setUserProfile({
+            name: meResponse.data.user.name || 'Pengguna',
+            avatar_url: meResponse.data.user.avatar_url || '',
+          });
+        }
+      } catch (err) {
+        setError(err.response?.data?.error || 'Gagal memuat data pengguna.');
+      } finally {
+        const sessionId = await loadSessions();
+        if (sessionId) {
+          await loadHistory(sessionId);
+        }
       }
     };
 
@@ -366,9 +379,22 @@ export default function AIChatbot() {
               messages.map((msg) => (
                 <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
                   <div className={`flex max-w-full sm:max-w-[85%] ${msg.sender === 'user' ? 'flex-row-reverse' : 'flex-row'} items-end gap-3`}>
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm ${msg.sender === 'user' ? 'bg-emerald-100 text-emerald-600' : 'bg-gradient-to-br from-indigo-500 to-purple-600 text-white'}`}>
-                      {msg.sender === 'user' ? <User className="w-5 h-5" /> : <Bot className="w-5 h-5" />}
-                    </div>
+                    {msg.sender === 'user' ? (
+                      <div className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center flex-shrink-0 shadow-sm border border-emerald-300 bg-emerald-50">
+                        <img
+                          src={getProfileAvatarSrc(userProfile)}
+                          alt={userProfile.name || 'User'}
+                          className="w-full h-full object-cover"
+                          onError={(event) => {
+                            event.currentTarget.src = getProfileAvatarSrc({ name: userProfile.name, avatar_url: '' });
+                          }}
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm bg-gradient-to-br from-indigo-500 to-purple-600 text-white">
+                        <Bot className="w-5 h-5" />
+                      </div>
+                    )}
                     <div className={`p-4 rounded-2xl ${msg.sender === 'user' ? 'bg-emerald-600 text-white rounded-br-sm' : 'bg-gray-100 text-gray-800 rounded-bl-sm'}`}>
                       <p className="whitespace-pre-wrap font-medium leading-relaxed text-sm md:text-base">{msg.text}</p>
                     </div>
