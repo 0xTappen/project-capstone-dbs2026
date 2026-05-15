@@ -3,6 +3,10 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Eye, EyeOff, Lock, User } from 'lucide-react';
 import api from '../lib/api';
 
+function isProfileComplete(user) {
+  return Boolean(user?.phone && String(user.phone).trim() && user?.address && String(user.address).trim());
+}
+
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
@@ -16,10 +20,16 @@ export default function Login() {
 
     try {
       const response = await api.post('/auth/login', { email, password });
-      const { token } = response.data;
+      const { token, user } = response.data;
 
       localStorage.setItem('token', token);
-      navigate('/dashboard');
+
+      if (isProfileComplete(user)) {
+        navigate('/dashboard');
+        return;
+      }
+
+      navigate('/settings/profile?complete=1');
     } catch (err) {
       const message = err.response?.data?.error || 'Email atau password salah. Silakan coba lagi.';
       setError(message);

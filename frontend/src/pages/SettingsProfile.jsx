@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { ChevronLeft, Save, User } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import api from '../lib/api';
 
 export default function SettingsProfile() {
+  const [searchParams] = useSearchParams();
+  const isCompletionRequired = searchParams.get('complete') === '1';
   const [form, setForm] = useState({ name: '', email: '', phone: '', address: '' });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -51,6 +53,11 @@ export default function SettingsProfile() {
       return;
     }
 
+    if (!payload.phone || !payload.address) {
+      setError('Telepon dan alamat wajib diisi agar akun bisa digunakan.');
+      return;
+    }
+
     setSaving(true);
     try {
       const response = await api.put('/auth/me', payload);
@@ -90,6 +97,11 @@ export default function SettingsProfile() {
 
       {error && <p className="text-sm text-red-600 font-bold">{error}</p>}
       {success && <p className="text-sm text-emerald-600 font-bold">{success}</p>}
+      {isCompletionRequired && (
+        <p className="text-sm text-amber-700 font-bold bg-amber-50 border border-amber-200 px-4 py-3 rounded-xl">
+          Lengkapi telepon dan alamat dulu sebelum memakai fitur utama aplikasi.
+        </p>
+      )}
 
       <div className="bg-white rounded-[2rem] border border-gray-100 shadow-sm p-6">
         {loading ? (
@@ -126,6 +138,7 @@ export default function SettingsProfile() {
                 onChange={(event) => setForm((prev) => ({ ...prev, phone: event.target.value }))}
                 className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none"
                 placeholder="+6281234567890"
+                required
               />
             </div>
 
@@ -136,6 +149,7 @@ export default function SettingsProfile() {
                 onChange={(event) => setForm((prev) => ({ ...prev, address: event.target.value }))}
                 className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none min-h-24 resize-y"
                 placeholder="Masukkan alamat lengkap"
+                required
               />
             </div>
 

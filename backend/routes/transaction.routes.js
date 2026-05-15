@@ -7,10 +7,12 @@ import {
   deleteTransaction
 } from '../controllers/transaction.controller.js';
 import authMiddleware from '../middleware/authMiddleware.js';
+import requireProfileCompletion from '../middleware/requireProfileCompletion.js';
 
 const router = express.Router();
 
 router.use(authMiddleware);
+router.use(requireProfileCompletion);
 
 router.get('/', getTransactions);
 router.get('/:id', getTransactionById);

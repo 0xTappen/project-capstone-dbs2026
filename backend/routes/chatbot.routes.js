@@ -9,10 +9,12 @@ import {
   deleteSession,
 } from '../controllers/chatbot.controller.js';
 import authMiddleware from '../middleware/authMiddleware.js';
+import requireProfileCompletion from '../middleware/requireProfileCompletion.js';
 
 const router = express.Router();
 
 router.use(authMiddleware);
+router.use(requireProfileCompletion);
 
 router.get('/sessions', listSessions);
 router.post('/sessions', createSession);
