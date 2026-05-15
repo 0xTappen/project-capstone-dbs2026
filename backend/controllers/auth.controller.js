@@ -2,11 +2,24 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import pool from '../config/db.js';
 
+const PHONE_REGEX = /^\+?[0-9()\-\s]{7,20}$/;
+
+function normalizeOptionalField(value) {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  const normalized = String(value).trim();
+  return normalized || null;
+}
+
 export const register = async (req, res) => {
   const { name, email, password } = req.body;
   const normalizedName = String(name || '').trim();
   const normalizedEmail = String(email || '').trim().toLowerCase();
   const normalizedPassword = String(password || '');
+  const normalizedPhone = normalizeOptionalField(req.body?.phone);
+  const normalizedAddress = normalizeOptionalField(req.body?.address);
 
   if (!normalizedName || !normalizedEmail || !normalizedPassword) {
     return res.status(400).json({ error: 'Name, email, and password are required.' });
@@ -14,6 +27,18 @@ export const register = async (req, res) => {
 
   if (normalizedPassword.length < 8) {
     return res.status(400).json({ error: 'Password must be at least 8 characters long.' });
+  }
+
+  if (normalizedPhone && !PHONE_REGEX.test(normalizedPhone)) {
+    return res.status(400).json({ error: 'Phone number format is invalid.' });
+  }
+
+  if (normalizedPhone && normalizedPhone.length > 20) {
+    return res.status(400).json({ error: 'Phone number is too long.' });
+  }
+
+  if (normalizedAddress && normalizedAddress.length > 255) {
+    return res.status(400).json({ error: 'Address is too long.' });
   }
 
   const client = await pool.connect();
@@ -31,8 +56,8 @@ export const register = async (req, res) => {
     const passwordHash = await bcrypt.hash(normalizedPassword, salt);
 
     const newUser = await client.query(
-      'INSERT INTO users (name, email, password_hash) VALUES ($1, $2, $3) RETURNING id, name, email, created_at',
-      [normalizedName, normalizedEmail, passwordHash]
+      'INSERT INTO users (name, email, password_hash, phone, address) VALUES ($1, $2, $3, $4, $5) RETURNING id, name, email, phone, address, created_at',
+      [normalizedName, normalizedEmail, passwordHash, normalizedPhone, normalizedAddress]
     );
 
     await client.query(
@@ -90,6 +115,8 @@ export const login = async (req, res) => {
         id: user.id,
         name: user.name,
         email: user.email,
+        phone: user.phone,
+        address: user.address,
         created_at: user.created_at,
       },
     });
@@ -102,7 +129,7 @@ export const login = async (req, res) => {
 export const getMe = async (req, res) => {
   try {
     const userResult = await pool.query(
-      'SELECT id, name, email, created_at FROM users WHERE id = $1',
+      'SELECT id, name, email, phone, address, created_at FROM users WHERE id = $1',
       [req.user.id]
     );
 
@@ -121,25 +148,48 @@ export const updateMe = async (req, res) => {
   const userId = req.user.id;
   const rawName = req.body?.name;
   const rawEmail = req.body?.email;
+  const rawPhone = req.body?.phone;
+  const rawAddress = req.body?.address;
+
+  const hasAnyField = [rawName, rawEmail, rawPhone, rawAddress].some((value) => value !== undefined);
+  if (!hasAnyField) {
+    return res.status(400).json({ error: 'At least one field (name, email, phone, or address) is required.' });
+  }
 
   const updates = {};
+
   if (rawName !== undefined) {
     updates.name = String(rawName).trim();
+    if (updates.name.length < 2) {
+      return res.status(400).json({ error: 'Name must be at least 2 characters long.' });
+    }
   }
+
   if (rawEmail !== undefined) {
     updates.email = String(rawEmail).trim().toLowerCase();
+    if (!updates.email.includes('@')) {
+      return res.status(400).json({ error: 'Invalid email format.' });
+    }
   }
 
-  if (!updates.name && !updates.email) {
-    return res.status(400).json({ error: 'At least one field (name or email) is required.' });
+  if (rawPhone !== undefined) {
+    updates.phone = normalizeOptionalField(rawPhone);
+
+    if (updates.phone && !PHONE_REGEX.test(updates.phone)) {
+      return res.status(400).json({ error: 'Phone number format is invalid.' });
+    }
+
+    if (updates.phone && updates.phone.length > 20) {
+      return res.status(400).json({ error: 'Phone number is too long.' });
+    }
   }
 
-  if (updates.name !== undefined && updates.name.length < 2) {
-    return res.status(400).json({ error: 'Name must be at least 2 characters long.' });
-  }
+  if (rawAddress !== undefined) {
+    updates.address = normalizeOptionalField(rawAddress);
 
-  if (updates.email !== undefined && !updates.email.includes('@')) {
-    return res.status(400).json({ error: 'Invalid email format.' });
+    if (updates.address && updates.address.length > 255) {
+      return res.status(400).json({ error: 'Address is too long.' });
+    }
   }
 
   try {
@@ -153,17 +203,19 @@ export const updateMe = async (req, res) => {
       }
     }
 
-    const currentUser = await pool.query('SELECT id, name, email FROM users WHERE id = $1', [userId]);
+    const currentUser = await pool.query('SELECT id, name, email, phone, address FROM users WHERE id = $1', [userId]);
     if (currentUser.rows.length === 0) {
       return res.status(404).json({ error: 'User not found.' });
     }
 
     const finalName = updates.name ?? currentUser.rows[0].name;
     const finalEmail = updates.email ?? currentUser.rows[0].email;
+    const finalPhone = updates.phone !== undefined ? updates.phone : currentUser.rows[0].phone;
+    const finalAddress = updates.address !== undefined ? updates.address : currentUser.rows[0].address;
 
     const updatedUser = await pool.query(
-      'UPDATE users SET name = $1, email = $2 WHERE id = $3 RETURNING id, name, email, created_at',
-      [finalName, finalEmail, userId]
+      'UPDATE users SET name = $1, email = $2, phone = $3, address = $4 WHERE id = $5 RETURNING id, name, email, phone, address, created_at',
+      [finalName, finalEmail, finalPhone, finalAddress, userId]
     );
 
     return res.status(200).json({

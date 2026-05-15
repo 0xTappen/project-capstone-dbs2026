@@ -19,6 +19,10 @@ const Transactions = lazy(() => import('./pages/Transactions'));
 const Bills = lazy(() => import('./pages/Bills'));
 const Reports = lazy(() => import('./pages/Reports'));
 const Settings = lazy(() => import('./pages/Settings'));
+const SettingsProfile = lazy(() => import('./pages/SettingsProfile'));
+const SettingsPassword = lazy(() => import('./pages/SettingsPassword'));
+const SettingsDevices = lazy(() => import('./pages/SettingsDevices'));
+const SettingsCategories = lazy(() => import('./pages/SettingsCategories'));
 const Login = lazy(() => import('./pages/Login'));
 const Register = lazy(() => import('./pages/Register'));
 const Budget = lazy(() => import('./pages/Budget'));
@@ -52,6 +56,10 @@ function App() {
             <Route path="bills" element={<Bills />} />
             <Route path="reports" element={<Reports />} />
             <Route path="settings" element={<Settings />} />
+            <Route path="settings/profile" element={<SettingsProfile />} />
+            <Route path="settings/password" element={<SettingsPassword />} />
+            <Route path="settings/devices" element={<SettingsDevices />} />
+            <Route path="settings/categories" element={<SettingsCategories />} />
             <Route path="budget" element={<Budget />} />
             <Route path="chatbot" element={<AIChatbot />} />
           </Route>
