@@ -8,7 +8,16 @@ function toNumber(value) {
 }
 
 function formatDate(dateString) {
-  return new Date(`${dateString}T00:00:00`).toLocaleDateString('id-ID', {
+  if (!dateString) {
+    return '-';
+  }
+
+  const parsed = new Date(`${dateString}T00:00:00`);
+  if (Number.isNaN(parsed.getTime())) {
+    return '-';
+  }
+
+  return parsed.toLocaleDateString('id-ID', {
     day: '2-digit',
     month: 'long',
     year: 'numeric',
@@ -107,7 +116,7 @@ export default function Bills() {
 
   return (
     <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6">
-      <header className="flex justify-between items-center mb-6">
+      <header className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Tagihan & Pembayaran</h1>
           <p className="text-gray-500 text-sm mt-1">Kelola tagihan bulananmu dengan mudah</p>
@@ -116,7 +125,22 @@ export default function Bills() {
 
       {error && <p className="text-sm text-red-600 font-bold">{error}</p>}
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="md:hidden bg-white p-3 rounded-[1.5rem] border border-gray-100 shadow-sm grid grid-cols-3 gap-2">
+        <div className="rounded-xl bg-gray-50 px-2 py-3 text-center">
+          <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1">Total</p>
+          <p className="text-sm font-extrabold text-gray-900">Rp {totalBill.toLocaleString('id-ID')}</p>
+        </div>
+        <div className="rounded-xl bg-emerald-50 px-2 py-3 text-center border border-emerald-100">
+          <p className="text-[10px] font-bold text-emerald-700 uppercase tracking-wide mb-1">Dibayar</p>
+          <p className="text-sm font-extrabold text-emerald-600">Rp {totalPaid.toLocaleString('id-ID')}</p>
+        </div>
+        <div className="rounded-xl bg-red-50 px-2 py-3 text-center border border-red-100">
+          <p className="text-[10px] font-bold text-red-700 uppercase tracking-wide mb-1">Belum</p>
+          <p className="text-sm font-extrabold text-red-600">Rp {totalUnpaid.toLocaleString('id-ID')}</p>
+        </div>
+      </div>
+
+      <div className="hidden md:grid md:grid-cols-3 gap-4">
         <div className="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm flex flex-col justify-center items-center text-center">
           <p className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-2">Total Tagihan</p>
           <p className="text-2xl md:text-3xl font-extrabold text-gray-900">Rp {totalBill.toLocaleString('id-ID')}</p>
@@ -131,11 +155,11 @@ export default function Bills() {
         </div>
       </div>
 
-      <div className="flex justify-between items-center mt-8 mb-4">
-        <h3 className="text-xl font-bold text-gray-900">{`Daftar Tagihan ${currentMonthTitle}`}</h3>
-        <button onClick={() => setShowModal(true)} className="flex items-center space-x-2 bg-emerald-600 text-white px-5 py-2.5 rounded-xl font-bold hover:bg-emerald-700 transition shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mt-8 mb-4">
+        <h3 className="text-lg sm:text-xl font-bold text-gray-900">{`Daftar Tagihan ${currentMonthTitle}`}</h3>
+        <button onClick={() => setShowModal(true)} className="w-full sm:w-auto flex items-center justify-center space-x-2 bg-emerald-600 text-white px-5 py-2.5 rounded-xl font-bold hover:bg-emerald-700 transition shadow-sm">
           <Plus className="w-5 h-5" />
-          <span className="hidden md:inline">Tambah Tagihan</span>
+          <span>Tambah Tagihan</span>
         </button>
       </div>
 
@@ -143,20 +167,20 @@ export default function Bills() {
         <div className="divide-y divide-gray-50">
           {!loading && sortedBills.length === 0 && <div className="p-8 text-center text-gray-500 font-bold">Belum ada tagihan dicatat.</div>}
           {!loading && sortedBills.map((bill) => (
-            <div key={bill.id} className="p-5 md:p-6 flex items-center justify-between hover:bg-gray-50 transition-colors group">
-              <div className="flex items-center space-x-4">
+            <div key={bill.id} className="p-5 md:p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 hover:bg-gray-50 transition-colors group">
+              <div className="flex items-start sm:items-center gap-4 min-w-0">
                 <div className={`w-12 h-12 rounded-full flex items-center justify-center ${bill.status === 'paid' ? 'bg-emerald-50 text-emerald-600' : 'bg-orange-50 text-orange-500'}`}>
                   <FileText className="w-6 h-6" />
                 </div>
-                <div>
-                  <h4 className="font-bold text-gray-900 text-lg">{bill.title}</h4>
+                <div className="min-w-0">
+                  <h4 className="font-bold text-gray-900 text-base sm:text-lg break-words">{bill.title}</h4>
                   <div className="flex items-center text-sm font-medium text-gray-500 mt-1">
                     <CalendarDays className="w-4 h-4 mr-1.5" />
                     {`Jatuh Tempo: ${formatDate(bill.due_date)}`}
                   </div>
                 </div>
               </div>
-              <div className="flex flex-col items-end space-y-2">
+              <div className="flex flex-col sm:items-end space-y-2 w-full sm:w-auto">
                 <p className="font-extrabold text-lg text-gray-900">Rp {toNumber(bill.amount).toLocaleString('id-ID')}</p>
                 {bill.status === 'paid' ? (
                   <button onClick={() => handleTogglePaid(bill)} className="flex items-center text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full hover:bg-emerald-100 transition cursor-pointer">

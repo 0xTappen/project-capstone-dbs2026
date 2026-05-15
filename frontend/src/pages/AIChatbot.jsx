@@ -1,17 +1,19 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   Bot,
   Send,
   User,
-  Sparkles,
-  TrendingUp,
-  Clock,
   Plus,
   Pencil,
   Trash2,
   MessageSquare,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Menu,
+  X,
 } from 'lucide-react';
 import api from '../lib/api';
+import AppDialog from '../components/AppDialog';
 
 function mapHistory(messages = []) {
   return messages.map((item) => ({
@@ -45,12 +47,12 @@ export default function AIChatbot() {
   const [isCreatingSession, setIsCreatingSession] = useState(false);
   const [error, setError] = useState('');
 
-  const messagesEndRef = useRef(null);
+  const [isDesktopSidebarOpen, setIsDesktopSidebarOpen] = useState(true);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [renameSessionTarget, setRenameSessionTarget] = useState(null);
+  const [deleteSessionTarget, setDeleteSessionTarget] = useState(null);
 
-  const activeSession = useMemo(
-    () => sessions.find((session) => session.id === activeSessionId) || null,
-    [sessions, activeSessionId]
-  );
+  const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -127,6 +129,17 @@ export default function AIChatbot() {
     scrollToBottom();
   }, [messages, isTyping]);
 
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768 && isMobileSidebarOpen) {
+        setIsMobileSidebarOpen(false);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [isMobileSidebarOpen]);
+
   const handleCreateSession = async () => {
     setError('');
     setIsCreatingSession(true);
@@ -138,6 +151,7 @@ export default function AIChatbot() {
       setActiveSessionId(newSession.id);
       setMessages([]);
       setInput('');
+      setIsMobileSidebarOpen(false);
     } catch (err) {
       setError(err.response?.data?.error || 'Gagal membuat chat baru.');
     } finally {
@@ -146,37 +160,52 @@ export default function AIChatbot() {
   };
 
   const handleSelectSession = async (sessionId) => {
-    if (sessionId === activeSessionId) return;
+    if (sessionId === activeSessionId) {
+      setIsMobileSidebarOpen(false);
+      return;
+    }
+
     setError('');
     setActiveSessionId(sessionId);
+    setIsMobileSidebarOpen(false);
     await loadHistory(sessionId);
   };
 
-  const handleRenameSession = async (session) => {
-    const nextTitle = window.prompt('Ubah judul chat:', session.title || 'Chat Baru');
-    if (!nextTitle) return;
+  const handleRenameSession = (session) => {
+    setRenameSessionTarget(session);
+  };
 
-    const title = nextTitle.trim();
+  const confirmRenameSession = async (nextTitle) => {
+    if (!renameSessionTarget) return;
+
+    const title = String(nextTitle || '').trim();
     if (!title) return;
 
     try {
-      const response = await api.patch(`/chatbot/sessions/${session.id}`, { title });
-      setSessions((prev) => prev.map((item) => (item.id === session.id ? { ...item, ...response.data } : item)));
+      const response = await api.patch(`/chatbot/sessions/${renameSessionTarget.id}`, { title });
+      setSessions((prev) =>
+        prev.map((item) => (item.id === renameSessionTarget.id ? { ...item, ...response.data } : item))
+      );
+      setRenameSessionTarget(null);
     } catch (err) {
       setError(err.response?.data?.error || 'Gagal mengubah judul chat.');
     }
   };
 
-  const handleDeleteSession = async (session) => {
-    if (!window.confirm(`Hapus chat "${session.title}"?`)) return;
+  const handleDeleteSession = (session) => {
+    setDeleteSessionTarget(session);
+  };
 
+  const confirmDeleteSession = async () => {
+    if (!deleteSessionTarget) return;
     setError('');
 
     try {
-      await api.delete(`/chatbot/sessions/${session.id}`);
+      await api.delete(`/chatbot/sessions/${deleteSessionTarget.id}`);
 
-      const remaining = sessions.filter((item) => item.id !== session.id);
+      const remaining = sessions.filter((item) => item.id !== deleteSessionTarget.id);
       setSessions(remaining);
+      setDeleteSessionTarget(null);
 
       if (remaining.length === 0) {
         const created = await api.post('/chatbot/sessions', { title: 'Chat Baru' });
@@ -187,7 +216,7 @@ export default function AIChatbot() {
         return;
       }
 
-      if (activeSessionId === session.id) {
+      if (activeSessionId === deleteSessionTarget.id) {
         const nextSessionId = remaining[0].id;
         setActiveSessionId(nextSessionId);
         await loadHistory(nextSessionId);
@@ -230,116 +259,99 @@ export default function AIChatbot() {
     }
   };
 
-  const handleClearCurrentSession = async () => {
-    if (!activeSessionId) return;
-    if (!window.confirm('Hapus semua pesan di chat ini?')) return;
+  const renderSidebar = () => (
+    <>
+      <button
+        onClick={handleCreateSession}
+        disabled={isCreatingSession}
+        className="w-full flex items-center justify-center gap-2 bg-emerald-600 text-white py-3 rounded-xl font-bold hover:bg-emerald-700 transition disabled:opacity-60"
+      >
+        <Plus className="w-5 h-5" />
+        {isCreatingSession ? 'Membuat...' : 'New Chat'}
+      </button>
 
-    try {
-      await api.delete('/chatbot/history', { params: { session_id: activeSessionId } });
-      setMessages([]);
-      await loadSessions(activeSessionId);
-    } catch (err) {
-      setError(err.response?.data?.error || 'Gagal menghapus isi chat.');
-    }
-  };
+      <div className="mt-4 overflow-y-auto space-y-2 pr-1 no-scrollbar">
+        {loadingSessions && <p className="text-sm text-gray-500 font-medium">Memuat chat...</p>}
+        {!loadingSessions && sessions.length === 0 && (
+          <p className="text-sm text-gray-500 font-medium">Belum ada riwayat chat.</p>
+        )}
+
+        {sessions.map((session) => {
+          const isActive = session.id === activeSessionId;
+
+          return (
+            <div
+              key={session.id}
+              className={`rounded-xl border p-3 cursor-pointer transition ${isActive ? 'border-emerald-300 bg-emerald-50' : 'border-gray-200 bg-gray-50 hover:bg-gray-100'}`}
+              onClick={() => handleSelectSession(session.id)}
+            >
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="font-bold text-sm text-gray-900 truncate">{session.title || 'Chat Baru'}</p>
+                  <p className="text-xs text-gray-500 mt-0.5 truncate">{session.last_message || 'Belum ada pesan'}</p>
+                  <p className="text-[11px] text-gray-400 mt-1">{formatSessionTime(session.updated_at)}</p>
+                </div>
+
+                <div className="flex items-center gap-1 shrink-0">
+                  <button
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      handleRenameSession(session);
+                    }}
+                    className="p-1.5 rounded-lg text-gray-500 hover:bg-white hover:text-blue-600"
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      handleDeleteSession(session);
+                    }}
+                    className="p-1.5 rounded-lg text-gray-500 hover:bg-white hover:text-red-600"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </>
+  );
 
   return (
-    <div className="p-4 md:p-6 max-w-7xl mx-auto h-[calc(100vh-72px)]">
-      <div className="h-full grid grid-cols-1 md:grid-cols-[300px_1fr] gap-4">
-        <aside className="bg-white rounded-3xl border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-4 flex flex-col overflow-hidden">
-          <button
-            onClick={handleCreateSession}
-            disabled={isCreatingSession}
-            className="w-full flex items-center justify-center gap-2 bg-emerald-600 text-white py-3 rounded-xl font-bold hover:bg-emerald-700 transition disabled:opacity-60"
-          >
-            <Plus className="w-5 h-5" />
-            {isCreatingSession ? 'Membuat...' : 'New Chat'}
-          </button>
+    <div className="p-0 md:p-6 max-w-7xl mx-auto h-[calc(100dvh-72px)] md:h-[calc(100vh-72px)] relative">
+      <div className="h-full flex gap-4">
+        {isDesktopSidebarOpen && (
+          <aside className="hidden md:flex w-[300px] bg-white rounded-3xl border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-4 flex-col overflow-hidden">
+            {renderSidebar()}
+          </aside>
+        )}
 
-          <div className="mt-4 overflow-y-auto space-y-2 pr-1">
-            {loadingSessions && <p className="text-sm text-gray-500 font-medium">Memuat chat...</p>}
-            {!loadingSessions && sessions.length === 0 && (
-              <p className="text-sm text-gray-500 font-medium">Belum ada riwayat chat.</p>
-            )}
-
-            {sessions.map((session) => {
-              const isActive = session.id === activeSessionId;
-
-              return (
-                <div
-                  key={session.id}
-                  className={`rounded-xl border p-3 cursor-pointer transition ${isActive ? 'border-emerald-300 bg-emerald-50' : 'border-gray-200 bg-gray-50 hover:bg-gray-100'}`}
-                  onClick={() => handleSelectSession(session.id)}
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <p className="font-bold text-sm text-gray-900 truncate">{session.title || 'Chat Baru'}</p>
-                      <p className="text-xs text-gray-500 mt-0.5 truncate">{session.last_message || 'Belum ada pesan'}</p>
-                      <p className="text-[11px] text-gray-400 mt-1">{formatSessionTime(session.updated_at)}</p>
-                    </div>
-
-                    <div className="flex items-center gap-1 shrink-0">
-                      <button
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          handleRenameSession(session);
-                        }}
-                        className="p-1.5 rounded-lg text-gray-500 hover:bg-white hover:text-blue-600"
-                      >
-                        <Pencil className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          handleDeleteSession(session);
-                        }}
-                        className="p-1.5 rounded-lg text-gray-500 hover:bg-white hover:text-red-600"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </aside>
-
-        <section className="bg-white rounded-3xl border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col overflow-hidden">
+        <section className="flex-1 bg-white rounded-none md:rounded-3xl border-0 md:border border-gray-100 shadow-none md:shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col overflow-hidden">
           <header className="p-4 md:p-6 border-b border-gray-100 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-            <div>
-              <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight flex items-center gap-2">
-                AI Financial Advisor <Sparkles className="w-5 h-5 text-yellow-500" />
-              </h1>
-              <p className="text-gray-500 font-medium text-sm mt-1">{activeSession?.title || 'Chat Baru'}</p>
-            </div>
-
-            <div className="flex items-center gap-2">
+            <div className="flex items-start gap-3">
               <button
-                onClick={handleClearCurrentSession}
-                className="text-xs font-bold px-3 py-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50"
+                onClick={() => setIsMobileSidebarOpen(true)}
+                className="md:hidden p-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50"
               >
-                Clear Chat
+                <Menu className="w-5 h-5" />
               </button>
+              <button
+                onClick={() => setIsDesktopSidebarOpen((prev) => !prev)}
+                className="hidden md:inline-flex p-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50"
+              >
+                {isDesktopSidebarOpen ? <PanelLeftClose className="w-5 h-5" /> : <PanelLeftOpen className="w-5 h-5" />}
+              </button>
+
+              <div>
+                <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">AI Financial Advisor</h1>
+              </div>
             </div>
           </header>
 
           {error && <p className="px-6 pt-4 text-sm text-red-600 font-bold">{error}</p>}
-
-          <div className="px-4 md:px-6 pt-3 pb-2 flex gap-2 overflow-x-auto flex-shrink-0 scrollbar-hide" data-html2canvas-ignore>
-            <button
-              onClick={() => setInput('Berapa lama estimasi waktu target tabungan saya tercapai?')}
-              className="whitespace-nowrap flex items-center gap-2 bg-emerald-50 text-emerald-700 px-4 py-2 rounded-full text-sm font-bold border border-emerald-100 hover:bg-emerald-100 transition"
-            >
-              <Clock className="w-4 h-4" /> Estimasi Target
-            </button>
-            <button
-              onClick={() => setInput('Beri saya tips agar tidak boros')}
-              className="whitespace-nowrap flex items-center gap-2 bg-blue-50 text-blue-700 px-4 py-2 rounded-full text-sm font-bold border border-blue-100 hover:bg-blue-100 transition"
-            >
-              <TrendingUp className="w-4 h-4" /> Tips Hemat
-            </button>
-          </div>
 
           <div className="flex-1 overflow-y-auto px-4 md:px-6 pb-4 space-y-4">
             {loadingMessages ? (
@@ -353,7 +365,7 @@ export default function AIChatbot() {
             ) : (
               messages.map((msg) => (
                 <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`flex max-w-[85%] ${msg.sender === 'user' ? 'flex-row-reverse' : 'flex-row'} items-end gap-3`}>
+                  <div className={`flex max-w-full sm:max-w-[85%] ${msg.sender === 'user' ? 'flex-row-reverse' : 'flex-row'} items-end gap-3`}>
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm ${msg.sender === 'user' ? 'bg-emerald-100 text-emerald-600' : 'bg-gradient-to-br from-indigo-500 to-purple-600 text-white'}`}>
                       {msg.sender === 'user' ? <User className="w-5 h-5" /> : <Bot className="w-5 h-5" />}
                     </div>
@@ -384,17 +396,17 @@ export default function AIChatbot() {
 
           <div className="p-4 md:p-6 border-t border-gray-100">
             <form onSubmit={handleSend} className="flex gap-2">
-              <input
-                type="text"
-                value={input}
-                onChange={(event) => setInput(event.target.value)}
-                placeholder="Tanya seputar keuangan atau estimasi target..."
-                className="flex-1 bg-gray-50 border border-gray-200 text-gray-900 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none p-4 font-medium transition"
-              />
+                <input
+                  type="text"
+                  value={input}
+                  onChange={(event) => setInput(event.target.value)}
+                  placeholder="Tulis pesan..."
+                  className="flex-1 bg-gray-50 border border-gray-200 text-gray-900 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none p-4 font-medium transition"
+                />
               <button
                 type="submit"
                 disabled={!input.trim() || isTyping || !activeSessionId}
-                className="bg-emerald-600 text-white px-6 rounded-xl hover:bg-emerald-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center shadow-lg shadow-emerald-200"
+                className="bg-emerald-600 text-white px-5 md:px-6 rounded-xl hover:bg-emerald-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center shadow-lg shadow-emerald-200"
               >
                 <Send className="w-5 h-5" />
               </button>
@@ -402,6 +414,46 @@ export default function AIChatbot() {
           </div>
         </section>
       </div>
+
+      {isMobileSidebarOpen && (
+        <div className="md:hidden fixed inset-0 z-50">
+          <button className="absolute inset-0 bg-black/40" onClick={() => setIsMobileSidebarOpen(false)} />
+          <aside className="absolute inset-y-0 left-0 w-[86vw] max-w-sm bg-white border-r border-gray-200 shadow-2xl p-4 flex flex-col">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="font-bold text-gray-900">Riwayat Chat</h2>
+              <button onClick={() => setIsMobileSidebarOpen(false)} className="p-2 rounded-lg text-gray-500 hover:bg-gray-100">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            {renderSidebar()}
+          </aside>
+        </div>
+      )}
+
+      <AppDialog
+        open={Boolean(renameSessionTarget)}
+        variant="prompt"
+        title="Ubah Judul Chat"
+        description="Masukkan judul baru untuk percakapan ini."
+        defaultValue={renameSessionTarget?.title || 'Chat Baru'}
+        placeholder="Contoh: Rencana Keuangan Bulanan"
+        confirmText="Simpan"
+        cancelText="Batal"
+        onCancel={() => setRenameSessionTarget(null)}
+        onConfirm={confirmRenameSession}
+      />
+
+      <AppDialog
+        open={Boolean(deleteSessionTarget)}
+        title="Hapus Chat?"
+        description={`Chat "${deleteSessionTarget?.title || 'Tanpa judul'}" akan dihapus permanen.`}
+        confirmText="Hapus"
+        cancelText="Batal"
+        danger
+        onCancel={() => setDeleteSessionTarget(null)}
+        onConfirm={confirmDeleteSession}
+      />
+
     </div>
   );
 }

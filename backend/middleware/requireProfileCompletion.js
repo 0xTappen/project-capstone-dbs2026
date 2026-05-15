@@ -1,4 +1,5 @@
 import pool from '../config/db.js';
+import ensureUserProfileColumns from '../utils/ensureUserProfileColumns.js';
 
 function isProfileComplete(user) {
   return Boolean(user?.phone && String(user.phone).trim() && user?.address && String(user.address).trim());
@@ -6,6 +7,8 @@ function isProfileComplete(user) {
 
 export default async function requireProfileCompletion(req, res, next) {
   try {
+    await ensureUserProfileColumns();
+
     const result = await pool.query('SELECT phone, address FROM users WHERE id = $1', [req.user.id]);
 
     if (result.rows.length === 0) {

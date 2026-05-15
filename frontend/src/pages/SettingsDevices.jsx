@@ -46,13 +46,13 @@ export default function SettingsDevices() {
         )}
 
         {devices.map((device) => (
-          <div key={device.id} className="p-4 rounded-xl border border-gray-200 bg-gray-50 flex items-center justify-between gap-3">
-            <div className="flex items-start gap-3">
+          <div key={device.id} className="p-4 rounded-xl border border-gray-200 bg-gray-50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="flex items-start gap-3 min-w-0">
               <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center text-gray-700">
                 <Monitor className="w-5 h-5" />
               </div>
-              <div>
-                <p className="font-bold text-gray-900">{device.name}</p>
+              <div className="min-w-0">
+                <p className="font-bold text-gray-900 break-words">{device.name}</p>
                 <p className="text-xs text-gray-500">Terakhir aktif: {new Date(device.lastActive).toLocaleString('id-ID')}</p>
                 {device.isCurrent && (
                   <span className="inline-block mt-1 text-[11px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full">
@@ -65,7 +65,7 @@ export default function SettingsDevices() {
             {!device.isCurrent && (
               <button
                 onClick={() => handleRemoveDevice(device.id)}
-                className="text-xs font-bold text-red-600 bg-red-50 border border-red-100 px-3 py-1.5 rounded-lg hover:bg-red-100 transition"
+                className="text-xs font-bold text-red-600 bg-red-50 border border-red-100 px-3 py-1.5 rounded-lg hover:bg-red-100 transition self-start sm:self-auto"
               >
                 Hapus
               </button>

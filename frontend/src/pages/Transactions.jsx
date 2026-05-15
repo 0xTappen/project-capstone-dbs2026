@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   ArrowUpCircle,
   ArrowDownCircle,
-  MoreVertical,
   Search,
   ChevronLeft,
   ChevronRight,
@@ -15,6 +14,7 @@ import {
   Plus,
 } from 'lucide-react';
 import api from '../lib/api';
+import AppDialog from '../components/AppDialog';
 
 const MONTHS = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
 
@@ -68,6 +68,8 @@ export default function Transactions() {
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [deleteTargetId, setDeleteTargetId] = useState(null);
+  const [isEditInfoDialogOpen, setIsEditInfoDialogOpen] = useState(false);
 
   const [formData, setFormData] = useState({ title: '', amount: '', categoryId: '', date: '' });
 
@@ -195,14 +197,16 @@ export default function Transactions() {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Apakah Anda yakin ingin menghapus transaksi ini?')) {
-      return;
-    }
+  const handleDelete = (id) => {
+    setDeleteTargetId(id);
+  };
 
+  const confirmDelete = async () => {
+    if (!deleteTargetId) return;
     try {
-      await api.delete(`/transactions/${id}`);
-      setTransactions((prev) => prev.filter((transaction) => transaction.id !== id));
+      await api.delete(`/transactions/${deleteTargetId}`);
+      setTransactions((prev) => prev.filter((transaction) => transaction.id !== deleteTargetId));
+      setDeleteTargetId(null);
     } catch (err) {
       setError(err.response?.data?.error || 'Gagal menghapus transaksi.');
     }
@@ -232,7 +236,7 @@ export default function Transactions() {
     <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500">
       <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-800">Pencatatan Keuangan</h1>
+          <h1 className="text-2xl md:text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-800">Pencatatan Keuangan</h1>
           <p className="text-gray-500 font-medium mt-1">Kelola dan pantau setiap arus kas Anda dengan rapi.</p>
         </div>
         <button
@@ -240,7 +244,7 @@ export default function Transactions() {
             setTransactionType('Pemasukan');
             setShowModal(true);
           }}
-          className="flex items-center space-x-2 bg-gradient-to-r from-emerald-500 to-emerald-700 text-white px-6 py-3 rounded-2xl font-bold hover:shadow-lg hover:shadow-emerald-500/30 transition-all transform hover:-translate-y-0.5"
+          className="w-full sm:w-auto flex items-center justify-center space-x-2 bg-gradient-to-r from-emerald-500 to-emerald-700 text-white px-6 py-3 rounded-2xl font-bold hover:shadow-lg hover:shadow-emerald-500/30 transition-all transform hover:-translate-y-0.5"
         >
           <Plus className="w-5 h-5" />
           <span>Catat Transaksi</span>
@@ -252,7 +256,7 @@ export default function Transactions() {
       <div className="flex flex-col md:flex-row gap-4 justify-between items-center bg-white p-4 rounded-[2rem] border border-gray-100 shadow-sm">
         <div className="flex items-center space-x-4 bg-gray-50/50 rounded-2xl p-2 w-full md:w-auto justify-center md:justify-start">
           <button onClick={prevMonth} className="p-2.5 hover:bg-white hover:shadow-sm rounded-xl transition text-gray-500 hover:text-emerald-600"><ChevronLeft className="w-5 h-5" /></button>
-          <div className="bg-transparent font-extrabold text-gray-800 text-center tracking-wide p-2">{`${MONTHS[selectedMonth]} ${selectedYear}`}</div>
+          <div className="bg-transparent font-extrabold text-gray-800 text-center tracking-wide p-2 text-sm sm:text-base">{`${MONTHS[selectedMonth]} ${selectedYear}`}</div>
           <button onClick={nextMonth} className="p-2.5 hover:bg-white hover:shadow-sm rounded-xl transition text-gray-500 hover:text-emerald-600"><ChevronRight className="w-5 h-5" /></button>
         </div>
 
@@ -297,7 +301,7 @@ export default function Transactions() {
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`flex-1 md:flex-none px-8 py-2.5 rounded-xl text-sm font-bold transition-all ${
+              className={`flex-1 md:flex-none px-4 sm:px-8 py-2.5 rounded-xl text-sm font-bold transition-all ${
                 activeTab === tab ? 'bg-emerald-500 text-white shadow-md transform scale-100' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
               }`}
             >
@@ -312,33 +316,31 @@ export default function Transactions() {
           <h3 className="text-xl font-bold text-gray-900">Riwayat Transaksi</h3>
           <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded-lg text-xs font-bold">{filteredTransactions.length} Transaksi</span>
         </div>
-        <div className="divide-y divide-gray-50">
+        <div className="transactions-list divide-y divide-gray-50">
           {!loading && filteredTransactions.map((transaction) => (
-            <div key={transaction.id} className="p-5 md:p-6 flex items-center justify-between hover:bg-gray-50/80 transition-all duration-300 group cursor-pointer">
-              <div className="flex items-center space-x-5">
-                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-sm transform group-hover:scale-110 transition-transform ${
+            <div key={transaction.id} className="p-5 md:p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 hover:bg-gray-50/80 transition-all duration-300 group cursor-pointer">
+              <div className="flex items-start sm:items-center gap-3 sm:gap-5 min-w-0">
+                <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center shadow-sm transform group-hover:scale-110 transition-transform shrink-0 ${
                   normalizeTransactionType(transaction.type) === 'income' ? 'bg-gradient-to-br from-emerald-100 to-emerald-50 text-emerald-600' : 'bg-gradient-to-br from-red-100 to-red-50 text-red-500'
                 }`}>
-                  {normalizeTransactionType(transaction.type) === 'income' ? <ArrowUpCircle className="w-7 h-7" /> : <ArrowDownCircle className="w-7 h-7" />}
+                  {normalizeTransactionType(transaction.type) === 'income' ? <ArrowUpCircle className="w-6 h-6 sm:w-7 sm:h-7" /> : <ArrowDownCircle className="w-6 h-6 sm:w-7 sm:h-7" />}
                 </div>
-                <div>
-                  <h4 className="font-bold text-gray-900 text-lg group-hover:text-emerald-700 transition-colors">{transaction.description || 'Tanpa keterangan'}</h4>
-                  <div className="flex items-center text-sm font-medium text-gray-500 mt-1 space-x-3">
+                <div className="min-w-0">
+                  <h4 className="font-bold text-gray-900 text-base sm:text-lg group-hover:text-emerald-700 transition-colors break-words">{transaction.description || 'Tanpa keterangan'}</h4>
+                  <div className="flex flex-wrap items-center text-sm font-medium text-gray-500 mt-1 gap-x-3 gap-y-1">
                     <span className="flex items-center"><TagIcon className="w-3.5 h-3.5 mr-1 text-gray-400" /> {transaction.category_name || 'Tanpa Kategori'}</span>
-                    <span className="w-1 h-1 rounded-full bg-gray-300"></span>
                     <span className="flex items-center"><CalendarDays className="w-3.5 h-3.5 mr-1 text-gray-400" /> {formatDate(transaction.transaction_date)}</span>
                   </div>
                 </div>
               </div>
-              <div className="flex items-center space-x-4">
-                <p className={`font-extrabold text-xl ${normalizeTransactionType(transaction.type) === 'income' ? 'text-emerald-600' : 'text-gray-900'}`}>
+              <div className="flex items-center justify-end w-full sm:w-auto gap-3 sm:gap-4">
+                <p className={`font-extrabold text-base sm:text-xl text-right whitespace-nowrap ${normalizeTransactionType(transaction.type) === 'income' ? 'text-emerald-600' : 'text-gray-900'}`}>
                   {normalizeTransactionType(transaction.type) === 'income' ? '+' : '-'} Rp {toNumber(transaction.amount).toLocaleString('id-ID')}
                 </p>
-                <div className="opacity-0 group-hover:opacity-100 transition-opacity flex space-x-2 absolute right-6 md:relative translate-x-4 group-hover:translate-x-0">
-                  <button onClick={() => alert('Fitur edit akan segera hadir!')} className="p-2.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition"><Edit2 className="w-4 h-4" /></button>
+                <div className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity flex items-center space-x-2 sm:translate-x-4 sm:group-hover:translate-x-0 shrink-0">
+                  <button onClick={() => setIsEditInfoDialogOpen(true)} className="p-2.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition"><Edit2 className="w-4 h-4" /></button>
                   <button onClick={() => handleDelete(transaction.id)} className="p-2.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition"><Trash2 className="w-4 h-4" /></button>
                 </div>
-                <button className="md:hidden p-2 text-gray-400"><MoreVertical className="w-5 h-5" /></button>
               </div>
             </div>
           ))}
@@ -366,13 +368,13 @@ export default function Transactions() {
               <X className="w-5 h-5" />
             </button>
 
-            <div className={`p-8 text-white relative overflow-hidden ${transactionType === 'Pemasukan' ? 'bg-gradient-to-br from-emerald-500 to-emerald-700' : 'bg-gradient-to-br from-red-500 to-red-700'}`}>
+            <div className={`p-6 sm:p-8 text-white relative overflow-hidden ${transactionType === 'Pemasukan' ? 'bg-gradient-to-br from-emerald-500 to-emerald-700' : 'bg-gradient-to-br from-red-500 to-red-700'}`}>
               <div className="absolute -top-24 -right-24 w-48 h-48 bg-white/10 rounded-full blur-2xl"></div>
-              <h3 className="text-3xl font-extrabold mb-2 relative z-10">Catat {transactionType}</h3>
+              <h3 className="text-2xl sm:text-3xl font-extrabold mb-2 relative z-10">Catat {transactionType}</h3>
               <p className="text-emerald-50/90 text-sm font-medium relative z-10">Masukkan detail data keuangan dengan akurat.</p>
             </div>
 
-            <div className="p-8 space-y-6">
+            <div className="p-6 sm:p-8 space-y-6">
               <div className="space-y-1.5">
                 <label className="block text-sm font-extrabold text-gray-700">Judul Transaksi</label>
                 <div className="relative">
@@ -405,7 +407,7 @@ export default function Transactions() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <label className="block text-sm font-extrabold text-gray-700">Kategori</label>
                   <div className="relative">
@@ -458,6 +460,27 @@ export default function Transactions() {
           </div>
         </div>
       )}
+
+      <AppDialog
+        open={Boolean(deleteTargetId)}
+        title="Hapus Transaksi?"
+        description="Data transaksi yang sudah dihapus tidak bisa dikembalikan."
+        confirmText="Hapus"
+        cancelText="Batal"
+        danger
+        onCancel={() => setDeleteTargetId(null)}
+        onConfirm={confirmDelete}
+      />
+
+      <AppDialog
+        open={isEditInfoDialogOpen}
+        variant="info"
+        title="Fitur Edit Belum Tersedia"
+        description="Fitur edit transaksi akan segera hadir di update berikutnya."
+        confirmText="Mengerti"
+        onCancel={() => setIsEditInfoDialogOpen(false)}
+        onConfirm={() => setIsEditInfoDialogOpen(false)}
+      />
     </div>
   );
 }

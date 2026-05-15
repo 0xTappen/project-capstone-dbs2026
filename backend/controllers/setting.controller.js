@@ -13,7 +13,7 @@ export const getSettings = async (req, res) => {
       // Create default settings if they don't exist
       const defaultSettings = await pool.query(
         'INSERT INTO user_settings (user_id, currency, theme) VALUES ($1, $2, $3) RETURNING id, user_id, currency, theme',
-        [userId, 'IDR', 'light']
+        [userId, 'IDR', 'system']
       );
       return res.status(200).json(defaultSettings.rows[0]);
     }
@@ -31,8 +31,8 @@ export const updateSettings = async (req, res) => {
   const normalizedTheme = theme ? String(theme).trim().toLowerCase() : undefined;
   const normalizedCurrency = currency ? String(currency).trim().toUpperCase() : undefined;
 
-  if (normalizedTheme !== undefined && !['light', 'dark'].includes(normalizedTheme)) {
-    return res.status(400).json({ error: "Theme must be either 'light' or 'dark'." });
+  if (normalizedTheme !== undefined && !['light', 'dark', 'system'].includes(normalizedTheme)) {
+    return res.status(400).json({ error: "Theme must be either 'light', 'dark', or 'system'." });
   }
 
   try {

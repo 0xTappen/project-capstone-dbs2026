@@ -128,14 +128,14 @@ export default function Budget() {
 
   return (
     <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6 animate-in fade-in duration-500">
-      <header className="flex justify-between items-center mb-6">
+      <header className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
         <div>
-          <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Anggaran & Tracking</h1>
+          <h1 className="text-2xl md:text-3xl font-extrabold text-gray-900 tracking-tight">Anggaran & Tracking</h1>
           <p className="text-gray-500 font-medium mt-1">Set anggaran per kategori dan pantau pengeluaran Anda</p>
         </div>
         <button
           onClick={() => setShowAddForm(!showAddForm)}
-          className="flex items-center space-x-2 bg-emerald-600 text-white px-5 py-2.5 rounded-xl font-bold hover:bg-emerald-700 transition shadow-lg shadow-emerald-200"
+          className="w-full sm:w-auto flex items-center justify-center space-x-2 bg-emerald-600 text-white px-5 py-2.5 rounded-xl font-bold hover:bg-emerald-700 transition shadow-lg shadow-emerald-200"
         >
           <Plus className="w-5 h-5" />
           <span>Set Anggaran</span>
@@ -175,7 +175,7 @@ export default function Budget() {
             </div>
           </div>
           <div className="mt-4 flex justify-end">
-            <button type="submit" disabled={saving} className="bg-emerald-600 text-white px-6 py-2.5 rounded-xl font-bold hover:bg-emerald-700 transition disabled:opacity-60 disabled:cursor-not-allowed">
+            <button type="submit" disabled={saving} className="w-full sm:w-auto bg-emerald-600 text-white px-6 py-2.5 rounded-xl font-bold hover:bg-emerald-700 transition disabled:opacity-60 disabled:cursor-not-allowed">
               {saving ? 'Menyimpan...' : 'Simpan Anggaran'}
             </button>
           </div>
@@ -210,7 +210,7 @@ export default function Budget() {
               </div>
 
               <div className="space-y-3">
-                <div className="flex justify-between text-sm">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between text-sm gap-1">
                   <span className="text-gray-500 font-medium">Terpakai: <span className="font-bold text-gray-900">Rp {spent.toLocaleString('id-ID')}</span></span>
                   <span className="text-gray-500 font-medium">Batas: <span className="font-bold text-gray-900">Rp {limit.toLocaleString('id-ID')}</span></span>
                 </div>

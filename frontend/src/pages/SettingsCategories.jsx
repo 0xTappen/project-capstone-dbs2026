@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { ChevronLeft, Pencil, Tag, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import api from '../lib/api';
+import AppDialog from '../components/AppDialog';
 
 export default function SettingsCategories() {
   const [categories, setCategories] = useState([]);
@@ -10,6 +11,7 @@ export default function SettingsCategories() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [deleteTargetCategory, setDeleteTargetCategory] = useState(null);
 
   useEffect(() => {
     const loadCategories = async () => {
@@ -78,20 +80,22 @@ export default function SettingsCategories() {
     });
   };
 
-  const handleDeleteCategory = async (id) => {
+  const handleDeleteCategory = (category) => {
     setError('');
     setSuccess('');
+    setDeleteTargetCategory(category);
+  };
 
-    if (!window.confirm('Hapus kategori ini?')) {
-      return;
-    }
+  const confirmDeleteCategory = async () => {
+    if (!deleteTargetCategory) return;
 
     try {
-      await api.delete(`/categories/${id}`);
-      setCategories((prev) => prev.filter((category) => category.id !== id));
+      await api.delete(`/categories/${deleteTargetCategory.id}`);
+      setCategories((prev) => prev.filter((category) => category.id !== deleteTargetCategory.id));
       setSuccess('Kategori berhasil dihapus.');
+      setDeleteTargetCategory(null);
 
-      if (categoryForm.id === id) {
+      if (categoryForm.id === deleteTargetCategory.id) {
         setCategoryForm({ id: null, name: '', type: 'expense' });
       }
     } catch (err) {
@@ -172,16 +176,16 @@ export default function SettingsCategories() {
           )}
 
           {sortedCategories.map((category) => (
-            <div key={category.id} className="p-3 rounded-xl border border-gray-200 bg-gray-50 flex items-center justify-between gap-2">
-              <div>
-                <p className="font-bold text-gray-900">{category.name}</p>
+            <div key={category.id} className="p-3 rounded-xl border border-gray-200 bg-gray-50 flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <p className="font-bold text-gray-900 break-words">{category.name}</p>
                 <p className="text-xs text-gray-500">{category.type === 'income' ? 'Pemasukan' : 'Pengeluaran'}</p>
               </div>
               <div className="flex items-center gap-2">
                 <button onClick={() => handleEditCategory(category)} className="p-2 rounded-lg text-blue-600 hover:bg-blue-50">
                   <Pencil className="w-4 h-4" />
                 </button>
-                <button onClick={() => handleDeleteCategory(category.id)} className="p-2 rounded-lg text-red-600 hover:bg-red-50">
+                <button onClick={() => handleDeleteCategory(category)} className="p-2 rounded-lg text-red-600 hover:bg-red-50">
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>
@@ -189,6 +193,17 @@ export default function SettingsCategories() {
           ))}
         </div>
       </div>
+
+      <AppDialog
+        open={Boolean(deleteTargetCategory)}
+        title="Hapus Kategori?"
+        description={`Kategori "${deleteTargetCategory?.name || ''}" akan dihapus permanen.`}
+        confirmText="Hapus"
+        cancelText="Batal"
+        danger
+        onCancel={() => setDeleteTargetCategory(null)}
+        onConfirm={confirmDeleteCategory}
+      />
     </div>
   );
 }

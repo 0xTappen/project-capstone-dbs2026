@@ -103,7 +103,7 @@ export default function SettingsPassword() {
             <button
               type="submit"
               disabled={saving}
-              className="px-5 py-3 rounded-xl font-bold text-white bg-emerald-600 hover:bg-emerald-700 transition disabled:opacity-60"
+              className="w-full sm:w-auto px-5 py-3 rounded-xl font-bold text-white bg-emerald-600 hover:bg-emerald-700 transition disabled:opacity-60"
             >
               {saving ? 'Menyimpan...' : 'Simpan Password Baru'}
             </button>

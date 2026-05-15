@@ -70,6 +70,7 @@ export default function SettingsProfile() {
           address: updatedUser.address || '',
         });
       }
+      window.dispatchEvent(new Event('profile-updated'));
       setSuccess('Profil berhasil diperbarui.');
     } catch (err) {
       setError(err.response?.data?.error || 'Gagal memperbarui profil.');
@@ -157,7 +158,7 @@ export default function SettingsProfile() {
               <button
                 type="submit"
                 disabled={saving}
-                className="inline-flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-white bg-emerald-600 hover:bg-emerald-700 transition disabled:opacity-60"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-bold text-white bg-emerald-600 hover:bg-emerald-700 transition disabled:opacity-60"
               >
                 <Save className="w-4 h-4" />
                 {saving ? 'Menyimpan...' : 'Simpan Perubahan'}

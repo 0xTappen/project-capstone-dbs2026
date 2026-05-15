@@ -1,6 +1,7 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import pool from '../config/db.js';
+import ensureUserProfileColumns from '../utils/ensureUserProfileColumns.js';
 
 const PHONE_REGEX = /^\+?[0-9()\-\s]{7,20}$/;
 
@@ -44,6 +45,7 @@ export const register = async (req, res) => {
   const client = await pool.connect();
 
   try {
+    await ensureUserProfileColumns();
     await client.query('BEGIN');
 
     const userCheck = await client.query('SELECT id FROM users WHERE email = $1', [normalizedEmail]);
@@ -95,6 +97,7 @@ export const login = async (req, res) => {
   }
 
   try {
+    await ensureUserProfileColumns();
     const userResult = await pool.query('SELECT * FROM users WHERE email = $1', [normalizedEmail]);
     if (userResult.rows.length === 0) {
       return res.status(400).json({ error: 'Invalid email or password.' });
@@ -128,6 +131,7 @@ export const login = async (req, res) => {
 
 export const getMe = async (req, res) => {
   try {
+    await ensureUserProfileColumns();
     const userResult = await pool.query(
       'SELECT id, name, email, phone, address, created_at FROM users WHERE id = $1',
       [req.user.id]
@@ -193,6 +197,8 @@ export const updateMe = async (req, res) => {
   }
 
   try {
+    await ensureUserProfileColumns();
+
     if (updates.email !== undefined) {
       const duplicateEmail = await pool.query(
         'SELECT id FROM users WHERE email = $1 AND id <> $2',
@@ -242,6 +248,7 @@ export const changePassword = async (req, res) => {
   }
 
   try {
+    await ensureUserProfileColumns();
     const userResult = await pool.query('SELECT id, password_hash FROM users WHERE id = $1', [userId]);
     if (userResult.rows.length === 0) {
       return res.status(404).json({ error: 'User not found.' });

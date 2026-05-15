@@ -129,13 +129,13 @@ export default function Dashboard() {
     <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500">
       {error && <p className="text-sm text-red-600 font-bold">{error}</p>}
 
-      <header className="flex justify-between items-center">
+      <header className="flex flex-col gap-4 md:flex-row md:justify-between md:items-center">
         <div>
-          <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Dashboard</h1>
+          <h1 className="text-2xl md:text-3xl font-extrabold text-gray-900 tracking-tight">Dashboard</h1>
           <p className="text-gray-500 font-medium mt-1">Selamat datang kembali, {userName}!</p>
         </div>
-        <div className="flex items-center space-x-4">
-          <Link to="/transactions" className="hidden md:flex items-center space-x-2 bg-white border border-gray-200 text-gray-700 px-4 py-2 rounded-xl font-bold hover:bg-gray-50 transition shadow-sm">
+        <div className="flex items-center justify-between md:justify-end w-full md:w-auto gap-3">
+          <Link to="/transactions" className="flex items-center justify-center space-x-2 bg-white border border-gray-200 text-gray-700 px-4 py-2 rounded-xl font-bold hover:bg-gray-50 transition shadow-sm w-full sm:w-auto">
             <Plus className="w-5 h-5 text-emerald-600" />
             <span>Catat Transaksi</span>
           </Link>
@@ -145,22 +145,22 @@ export default function Dashboard() {
         </div>
       </header>
 
-      <div className="bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-800 rounded-[2.5rem] p-8 md:p-10 text-white shadow-2xl shadow-emerald-600/30 relative overflow-hidden group">
+      <div className="bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-800 rounded-[2.5rem] p-6 sm:p-8 md:p-10 text-white shadow-2xl shadow-emerald-600/30 relative overflow-hidden group">
         <div className="absolute top-0 right-0 w-80 h-80 bg-white/10 rounded-full -mr-20 -mt-20 blur-3xl group-hover:bg-white/20 transition-all duration-700"></div>
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-emerald-400/20 rounded-full -ml-16 -mb-16 blur-2xl group-hover:bg-emerald-400/30 transition-all duration-700"></div>
 
         <div className="relative z-10">
-          <div className="flex justify-between items-start mb-6">
+          <div className="flex justify-between items-start mb-6 gap-4">
             <div>
               <p className="text-emerald-50 text-sm font-bold uppercase tracking-widest mb-2 opacity-90">Total Saldo Saat Ini</p>
-              <h2 className="text-5xl md:text-6xl font-black tracking-tight drop-shadow-sm">Rp {metrics.netBalance.toLocaleString('id-ID')}</h2>
+              <h2 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tight drop-shadow-sm break-words">Rp {metrics.netBalance.toLocaleString('id-ID')}</h2>
             </div>
             <div className="bg-white/20 backdrop-blur-md p-3 rounded-2xl border border-white/20 shadow-inner">
               <Wallet className="w-8 h-8 text-white" />
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4 md:gap-6 mt-10">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6 mt-8 md:mt-10">
             <div className="bg-white/10 rounded-[1.5rem] p-5 backdrop-blur-md border border-white/10 hover:bg-white/20 transition-colors">
               <div className="flex items-center text-emerald-50 mb-3">
                 <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center mr-3 shadow-sm">
@@ -183,7 +183,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-6">
         <div className="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col justify-center items-start hover:-translate-y-1 transition-transform duration-300">
           <div className="w-14 h-14 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-500 mb-4 shadow-inner">
             <Wallet className="w-7 h-7" />
@@ -214,8 +214,8 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
-        <div className="flex justify-between items-center mb-8">
+      <div className="bg-white p-6 md:p-8 rounded-[2.5rem] border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-8">
           <div>
             <h3 className="text-2xl font-extrabold text-gray-900">Tren Saldo</h3>
             <p className="text-sm font-medium text-gray-500 mt-1">Statistik pertumbuhan uang Anda</p>
@@ -230,7 +230,7 @@ export default function Dashboard() {
             ))}
           </select>
         </div>
-        <div className="h-[300px] w-full">
+        <div className="h-[260px] sm:h-[300px] w-full">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={chartData} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
               <defs>

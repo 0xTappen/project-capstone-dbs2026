@@ -221,13 +221,13 @@ export default function Reports() {
     <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6 animate-in fade-in duration-500" ref={reportRef}>
       <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Laporan & Visualisasi</h1>
+          <h1 className="text-2xl md:text-3xl font-extrabold text-gray-900 tracking-tight">Laporan & Visualisasi</h1>
           <p className="text-gray-500 font-medium mt-1">Analisis performa keuangan bulanan dan tahunan</p>
         </div>
         <button
           onClick={exportToPDF}
           disabled={exporting || loading}
-          className="flex items-center space-x-2 bg-indigo-600 text-white px-5 py-2.5 rounded-xl font-bold hover:bg-indigo-700 transition shadow-lg shadow-indigo-200 disabled:opacity-60 disabled:cursor-not-allowed"
+          className="w-full md:w-auto justify-center flex items-center space-x-2 bg-indigo-600 text-white px-5 py-2.5 rounded-xl font-bold hover:bg-indigo-700 transition shadow-lg shadow-indigo-200 disabled:opacity-60 disabled:cursor-not-allowed"
         >
           <Download className="w-5 h-5" />
           <span>{exporting ? 'Exporting...' : 'Export PDF'}</span>
@@ -251,7 +251,7 @@ export default function Reports() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         <div className="bg-white p-5 rounded-[1.5rem] border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
           <p className="text-sm font-bold text-gray-500 uppercase tracking-wider">Saldo Awal Tahun</p>
           <p className="text-2xl font-black text-gray-900 mt-2">Rp {openingBalance.toLocaleString('id-ID')}</p>
@@ -281,17 +281,19 @@ export default function Reports() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] lg:col-span-2">
             <h3 className="text-xl font-extrabold text-gray-900 mb-6">Arus Kas Tahunan</h3>
-            <div className="h-[300px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={yearlyData} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#9ca3af', fontSize: 12, fontWeight: 700 }} dy={10} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#9ca3af', fontSize: 12, fontWeight: 700 }} dx={-10} tickFormatter={(value) => `Rp${value / 1000}k`} />
-                  <RechartsTooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)', fontWeight: 'bold' }} />
-                  <Bar dataKey="income" fill="#10b981" radius={[4, 4, 0, 0]} name="Pemasukan" />
-                  <Bar dataKey="expense" fill="#f87171" radius={[4, 4, 0, 0]} name="Pengeluaran" />
-                </BarChart>
-              </ResponsiveContainer>
+            <div className="h-[260px] sm:h-[300px] w-full overflow-x-auto">
+              <div className="min-w-[640px] h-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={yearlyData} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#9ca3af', fontSize: 12, fontWeight: 700 }} dy={10} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fill: '#9ca3af', fontSize: 12, fontWeight: 700 }} dx={-10} tickFormatter={(value) => `Rp${value / 1000}k`} />
+                    <RechartsTooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)', fontWeight: 'bold' }} />
+                    <Bar dataKey="income" fill="#10b981" radius={[4, 4, 0, 0]} name="Pemasukan" />
+                    <Bar dataKey="expense" fill="#f87171" radius={[4, 4, 0, 0]} name="Pengeluaran" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </div>
           </div>
 
@@ -327,16 +329,18 @@ export default function Reports() {
           <div className="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] lg:col-span-3">
             <h3 className="text-xl font-extrabold text-gray-900 mb-2">Tren Pertumbuhan Tabungan (Per Bulan)</h3>
             <p className="text-sm text-gray-500 font-medium mb-6">Analisis tabungan bersih setiap bulan</p>
-            <div className="h-[300px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={yearlyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#9ca3af', fontSize: 12, fontWeight: 700 }} dy={10} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#9ca3af', fontSize: 12, fontWeight: 700 }} dx={-10} tickFormatter={(value) => `Rp${value / 1000}k`} />
-                  <RechartsTooltip contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)', fontWeight: 'bold' }} />
-                  <Line type="monotone" dataKey="cumulativeSavings" stroke="#3b82f6" strokeWidth={4} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 8 }} name="Tabungan Kumulatif" />
-                </LineChart>
-              </ResponsiveContainer>
+            <div className="h-[260px] sm:h-[300px] w-full overflow-x-auto">
+              <div className="min-w-[640px] h-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={yearlyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#9ca3af', fontSize: 12, fontWeight: 700 }} dy={10} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fill: '#9ca3af', fontSize: 12, fontWeight: 700 }} dx={-10} tickFormatter={(value) => `Rp${value / 1000}k`} />
+                    <RechartsTooltip contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)', fontWeight: 'bold' }} />
+                    <Line type="monotone" dataKey="cumulativeSavings" stroke="#3b82f6" strokeWidth={4} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 8 }} name="Tabungan Kumulatif" />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
             </div>
           </div>
         </div>
