@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { useEffect } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import Layout from './components/Layout';
 
 const ProtectedRoute = ({ children }) => {
@@ -13,15 +13,24 @@ const ProtectedRoute = ({ children }) => {
 
   return children;
 };
-import Dashboard from './pages/Dashboard';
-import Transactions from './pages/Transactions';
-import Bills from './pages/Bills';
-import Reports from './pages/Reports';
-import Settings from './pages/Settings';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import Budget from './pages/Budget';
-import AIChatbot from './pages/AIChatbot';
+
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Transactions = lazy(() => import('./pages/Transactions'));
+const Bills = lazy(() => import('./pages/Bills'));
+const Reports = lazy(() => import('./pages/Reports'));
+const Settings = lazy(() => import('./pages/Settings'));
+const Login = lazy(() => import('./pages/Login'));
+const Register = lazy(() => import('./pages/Register'));
+const Budget = lazy(() => import('./pages/Budget'));
+const AIChatbot = lazy(() => import('./pages/AIChatbot'));
+
+function RouteFallback() {
+  return (
+    <div className="min-h-screen flex items-center justify-center text-sm font-semibold text-gray-500">
+      Memuat halaman...
+    </div>
+  );
+}
 
 function App() {
   useEffect(() => {
@@ -31,21 +40,23 @@ function App() {
 
   return (
     <Router>
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        
-        <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-          <Route index element={<Navigate to="/dashboard" replace />} />
-          <Route path="dashboard" element={<Dashboard />} />
-          <Route path="transactions" element={<Transactions />} />
-          <Route path="bills" element={<Bills />} />
-          <Route path="reports" element={<Reports />} />
-          <Route path="settings" element={<Settings />} />
-          <Route path="budget" element={<Budget />} />
-          <Route path="chatbot" element={<AIChatbot />} />
-        </Route>
-      </Routes>
+      <Suspense fallback={<RouteFallback />}>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+
+          <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+            <Route index element={<Navigate to="/dashboard" replace />} />
+            <Route path="dashboard" element={<Dashboard />} />
+            <Route path="transactions" element={<Transactions />} />
+            <Route path="bills" element={<Bills />} />
+            <Route path="reports" element={<Reports />} />
+            <Route path="settings" element={<Settings />} />
+            <Route path="budget" element={<Budget />} />
+            <Route path="chatbot" element={<AIChatbot />} />
+          </Route>
+        </Routes>
+      </Suspense>
     </Router>
   );
 }

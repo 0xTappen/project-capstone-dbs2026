@@ -14,8 +14,6 @@ import {
 } from 'recharts';
 import { Calendar, Download } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import html2canvas from 'html2canvas-pro';
-import { jsPDF } from 'jspdf';
 import api from '../lib/api';
 
 const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
@@ -52,9 +50,8 @@ function normalizeTransactionType(type) {
 
 export default function Reports() {
   const reportRef = useRef(null);
-  const currentYear = new Date().getFullYear();
-  const [selectedYear, setSelectedYear] = useState(currentYear);
-  const [availableYears, setAvailableYears] = useState([currentYear]);
+  const [selectedYear, setSelectedYear] = useState(() => new Date().getFullYear());
+  const [availableYears, setAvailableYears] = useState(() => [new Date().getFullYear()]);
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
@@ -62,6 +59,7 @@ export default function Reports() {
 
   useEffect(() => {
     const loadTransactions = async () => {
+      const currentYear = new Date().getFullYear();
       setLoading(true);
       setError('');
 
@@ -83,7 +81,7 @@ export default function Reports() {
           : [currentYear, currentYear - 1, currentYear - 2];
 
         setAvailableYears(years);
-        setSelectedYear(years[0]);
+        setSelectedYear((prev) => (years.includes(prev) ? prev : years[0]));
       } catch (err) {
         setError(err.response?.data?.error || 'Gagal memuat data laporan.');
       } finally {
@@ -129,6 +127,9 @@ export default function Reports() {
 
     yearlyTransactions.forEach((transaction) => {
       const month = toDate(transaction.transaction_date).getMonth();
+      if (!Number.isInteger(month) || month < 0 || month > 11) {
+        return;
+      }
       const amount = toNumber(transaction.amount);
 
       if (normalizeTransactionType(transaction.type) === 'income') {
@@ -138,16 +139,24 @@ export default function Reports() {
       }
     });
 
-    let runningSavings = 0;
-    return base.map((row) => {
-      const monthlySavings = row.income - row.expense;
-      runningSavings += monthlySavings;
-      return {
-        ...row,
-        savings: monthlySavings,
-        cumulativeSavings: runningSavings,
-      };
-    });
+    return base
+      .reduce(
+        (acc, row) => {
+          const monthlySavings = row.income - row.expense;
+          const cumulativeSavings = acc.running + monthlySavings;
+          acc.rows.push({
+            ...row,
+            savings: monthlySavings,
+            cumulativeSavings,
+          });
+          return {
+            rows: acc.rows,
+            running: cumulativeSavings,
+          };
+        },
+        { rows: [], running: 0 }
+      )
+      .rows;
   }, [yearlyTransactions]);
 
   const categoryData = useMemo(() => {
@@ -169,6 +178,10 @@ export default function Reports() {
     setError('');
 
     try {
+      const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
+        import('html2canvas-pro'),
+        import('jspdf'),
+      ]);
       const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,
