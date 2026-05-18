@@ -16,11 +16,21 @@ PORT=5000
 DATABASE_URL=postgres://postgres:postgres@localhost:5432/personal_finance
 JWT_SECRET=replace-with-strong-secret
 CORS_ORIGIN=http://localhost:5173,http://127.0.0.1:5173
+GOOGLE_CLIENT_ID=your-google-oauth-client-id.apps.googleusercontent.com
 
 AI_PROVIDER=groq
 GROQ_API_KEY=replace-with-your-groq-api-key
 GROQ_MODEL=llama-3.1-8b-instant
 GROQ_API_BASE_URL=https://api.groq.com/openai/v1
+```
+
+## Frontend Environment
+
+Buat file `frontend/.env` dari `frontend/.env.example`:
+
+```env
+VITE_API_BASE_URL=http://localhost:5000/api
+VITE_GOOGLE_CLIENT_ID=your-google-oauth-client-id.apps.googleusercontent.com
 ```
 
 ## Menjalankan Project

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Eye, EyeOff, Lock, User } from 'lucide-react';
 import api from '../lib/api';
@@ -13,6 +13,19 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const googleButtonRef = useRef(null);
+  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+
+  const finishLogin = useCallback((token, user) => {
+    localStorage.setItem('token', token);
+
+    if (isProfileComplete(user)) {
+      navigate('/dashboard');
+      return;
+    }
+
+    navigate('/settings/profile?complete=1');
+  }, [navigate]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -21,20 +34,83 @@ export default function Login() {
     try {
       const response = await api.post('/auth/login', { email, password });
       const { token, user } = response.data;
-
-      localStorage.setItem('token', token);
-
-      if (isProfileComplete(user)) {
-        navigate('/dashboard');
-        return;
-      }
-
-      navigate('/settings/profile?complete=1');
+      finishLogin(token, user);
     } catch (err) {
       const message = err.response?.data?.error || 'Email atau password salah. Silakan coba lagi.';
       setError(message);
     }
   };
+
+  const handleGoogleCredential = useCallback(async (response) => {
+    const credential = String(response?.credential || '');
+    if (!credential) {
+      setError('Login Google gagal. Credential tidak ditemukan.');
+      return;
+    }
+
+    setError('');
+    try {
+      const loginResponse = await api.post('/auth/google', { credential });
+      const { token, user } = loginResponse.data;
+      finishLogin(token, user);
+    } catch (err) {
+      const message = err.response?.data?.error || 'Login Google gagal. Silakan coba lagi.';
+      setError(message);
+    }
+  }, [finishLogin]);
+
+  useEffect(() => {
+    if (!googleClientId) {
+      return undefined;
+    }
+
+    let isCancelled = false;
+
+    const initGoogle = () => {
+      if (isCancelled || !googleButtonRef.current) {
+        return;
+      }
+
+      const googleId = window.google?.accounts?.id;
+      if (!googleId) {
+        return;
+      }
+
+      googleId.initialize({
+        client_id: googleClientId,
+        callback: handleGoogleCredential,
+      });
+
+      googleButtonRef.current.innerHTML = '';
+      googleId.renderButton(googleButtonRef.current, {
+        type: 'standard',
+        theme: 'outline',
+        text: 'signin_with',
+        shape: 'pill',
+        size: 'large',
+        width: 360,
+      });
+    };
+
+    if (window.google?.accounts?.id) {
+      initGoogle();
+      return () => {
+        isCancelled = true;
+      };
+    }
+
+    const script = document.createElement('script');
+    script.src = 'https://accounts.google.com/gsi/client';
+    script.async = true;
+    script.defer = true;
+    script.onload = initGoogle;
+    document.head.appendChild(script);
+
+    return () => {
+      isCancelled = true;
+      script.onload = null;
+    };
+  }, [googleClientId, handleGoogleCredential]);
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center items-center p-4 relative overflow-hidden font-sans">
@@ -106,6 +182,22 @@ export default function Login() {
             Masuk
           </button>
         </form>
+
+        <div className="my-6 flex items-center gap-3">
+          <div className="h-px flex-1 bg-gray-200" />
+          <span className="text-xs font-bold uppercase tracking-wider text-gray-400">atau</span>
+          <div className="h-px flex-1 bg-gray-200" />
+        </div>
+
+        {googleClientId ? (
+          <div className="flex justify-center">
+            <div ref={googleButtonRef} />
+          </div>
+        ) : (
+          <p className="text-center text-xs text-gray-400 font-medium">
+            Google Login belum diaktifkan di environment frontend.
+          </p>
+        )}
 
         <div className="mt-8 text-center">
           <p className="text-gray-500 font-medium text-sm">

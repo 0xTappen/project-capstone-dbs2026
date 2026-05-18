@@ -1,7 +1,7 @@
 const ipBuckets = new Map();
 const WINDOW_MS = 15 * 60 * 1000;
 const MAX_ATTEMPTS = 60;
-const LIMITED_AUTH_PATHS = new Set(['/register', '/login', '/change-password']);
+const LIMITED_AUTH_PATHS = new Set(['/register', '/login', '/google', '/change-password']);
 
 function getClientIp(req) {
   return req.ip || req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'unknown';

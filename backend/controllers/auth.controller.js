@@ -1,10 +1,13 @@
 import bcrypt from 'bcrypt';
+import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
+import { OAuth2Client } from 'google-auth-library';
 import pool from '../config/db.js';
 import ensureUserProfileColumns from '../utils/ensureUserProfileColumns.js';
 
 const PHONE_REGEX = /^\+?[0-9()\-\s]{7,20}$/;
 const MAX_AVATAR_URL_LENGTH = 1800000;
+const googleClient = new OAuth2Client();
 
 function normalizeOptionalField(value) {
   if (value === undefined) {
@@ -41,6 +44,23 @@ function normalizeAvatarUrl(value) {
   }
 
   return { value: normalized };
+}
+
+function buildAuthPayload(user, jwtSecret) {
+  const token = jwt.sign({ id: user.id, email: user.email }, jwtSecret, { expiresIn: '7d' });
+
+  return {
+    token,
+    user: {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      phone: user.phone,
+      address: user.address,
+      avatar_url: user.avatar_url,
+      created_at: user.created_at,
+    },
+  };
 }
 
 export const register = async (req, res) => {
@@ -143,24 +163,100 @@ export const login = async (req, res) => {
       return res.status(400).json({ error: 'Invalid email or password.' });
     }
 
-    const token = jwt.sign({ id: user.id, email: user.email }, jwtSecret, { expiresIn: '7d' });
-
     return res.status(200).json({
       message: 'Login successful.',
-      token,
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        phone: user.phone,
-        address: user.address,
-        avatar_url: user.avatar_url,
-        created_at: user.created_at,
-      },
+      ...buildAuthPayload(user, jwtSecret),
     });
   } catch (error) {
     console.error('Login Error:', error);
     return res.status(500).json({ error: 'Internal server error.' });
+  }
+};
+
+export const googleLogin = async (req, res) => {
+  const credential = String(req.body?.credential || '');
+  const jwtSecret = process.env.JWT_SECRET;
+  const googleClientId = process.env.GOOGLE_CLIENT_ID;
+
+  if (!credential) {
+    return res.status(400).json({ error: 'Google credential is required.' });
+  }
+
+  if (!jwtSecret) {
+    return res.status(500).json({ error: 'Server auth configuration is invalid.' });
+  }
+
+  if (!googleClientId) {
+    return res.status(500).json({ error: 'Google login is not configured on server.' });
+  }
+
+  let payload;
+
+  try {
+    const ticket = await googleClient.verifyIdToken({
+      idToken: credential,
+      audience: googleClientId,
+    });
+    payload = ticket.getPayload();
+  } catch (error) {
+    console.error('Google Verify Error:', error);
+    return res.status(401).json({ error: 'Google token is invalid or expired.' });
+  }
+
+  const verifiedEmail = String(payload?.email || '').trim().toLowerCase();
+  const emailVerified = Boolean(payload?.email_verified);
+  const fullName = String(payload?.name || '').trim() || 'Google User';
+  const pictureUrl = String(payload?.picture || '').trim();
+  const avatarUrl = /^https?:\/\//i.test(pictureUrl) ? pictureUrl : null;
+
+  if (!verifiedEmail || !emailVerified) {
+    return res.status(400).json({ error: 'Google account email is not verified.' });
+  }
+
+  const client = await pool.connect();
+
+  try {
+    await ensureUserProfileColumns();
+    await client.query('BEGIN');
+
+    const existingUser = await client.query(
+      'SELECT id, name, email, phone, address, avatar_url, created_at FROM users WHERE email = $1',
+      [verifiedEmail]
+    );
+
+    let user;
+
+    if (existingUser.rows.length > 0) {
+      user = existingUser.rows[0];
+    } else {
+      const randomPassword = `google:${crypto.randomUUID()}`;
+      const passwordHash = await bcrypt.hash(randomPassword, 10);
+
+      const createdUser = await client.query(
+        'INSERT INTO users (name, email, password_hash, phone, address, avatar_url) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, name, email, phone, address, avatar_url, created_at',
+        [fullName, verifiedEmail, passwordHash, null, null, avatarUrl]
+      );
+
+      await client.query(
+        'INSERT INTO user_settings (user_id, currency, theme) VALUES ($1, $2, $3)',
+        [createdUser.rows[0].id, 'IDR', 'system']
+      );
+
+      user = createdUser.rows[0];
+    }
+
+    await client.query('COMMIT');
+
+    return res.status(200).json({
+      message: 'Google login successful.',
+      ...buildAuthPayload(user, jwtSecret),
+    });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('Google Login Error:', error);
+    return res.status(500).json({ error: 'Internal server error.' });
+  } finally {
+    client.release();
   }
 };
 
