@@ -148,9 +148,7 @@ export default function Dashboard() {
         </div>
       </header>
 
-      <div className="bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-800 rounded-[2.5rem] p-6 sm:p-8 md:p-10 text-white shadow-2xl shadow-blue-600/30 relative overflow-hidden group">
-        <div className="absolute top-0 right-0 w-80 h-80 bg-white/10 rounded-full -mr-20 -mt-20 blur-3xl group-hover:bg-white/20 transition-all duration-700"></div>
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-400/20 rounded-full -ml-16 -mb-16 blur-2xl group-hover:bg-blue-400/30 transition-all duration-700"></div>
+      <div className="bg-emerald-700 rounded-[2.5rem] p-6 sm:p-8 md:p-10 text-white shadow-xl relative overflow-hidden group">
 
         <div className="relative z-10">
           <div className="flex justify-between items-start mb-6 gap-4">
@@ -188,31 +186,31 @@ export default function Dashboard() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-6">
         <div className="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col justify-center items-start hover:-translate-y-1 transition-transform duration-300">
-          <div className="w-14 h-14 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-500 mb-4 shadow-inner">
+          <div className="w-14 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600 mb-4 shadow-inner">
             <Wallet className="w-7 h-7" />
           </div>
           <p className="text-sm text-gray-500 font-bold uppercase tracking-wider">Saldo Bersih</p>
           <p className="text-xl font-black text-gray-900 mt-1">Rp {(metrics.netBalance / 1000).toLocaleString('id-ID')}k</p>
         </div>
         <div className="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col justify-center items-start hover:-translate-y-1 transition-transform duration-300">
-          <div className="w-14 h-14 rounded-2xl bg-orange-50 flex items-center justify-center text-orange-500 mb-4 shadow-inner">
+          <div className="w-14 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600 mb-4 shadow-inner">
             <CreditCard className="w-7 h-7" />
           </div>
           <p className="text-sm text-gray-500 font-bold uppercase tracking-wider">Tagihan Belum Lunas</p>
           <p className="text-xl font-black text-gray-900 mt-1">Rp {metrics.unpaidBills > 0 ? (metrics.unpaidBills / 1000).toLocaleString('id-ID') + 'k' : '0'}</p>
         </div>
         <div className="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col justify-center items-start hover:-translate-y-1 transition-transform duration-300">
-          <div className="w-14 h-14 rounded-2xl bg-purple-50 flex items-center justify-center text-purple-500 mb-4 shadow-inner">
+          <div className="w-14 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600 mb-4 shadow-inner">
             <TrendingUp className="w-7 h-7" />
           </div>
           <p className="text-sm text-gray-500 font-bold uppercase tracking-wider">Investasi</p>
           <p className="text-xl font-black text-gray-900 mt-1">Rp {metrics.totalInvestment > 0 ? (metrics.totalInvestment / 1000).toLocaleString('id-ID') + 'k' : '0'}</p>
         </div>
-        <div className="bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-100/50 p-6 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col justify-center items-start hover:-translate-y-1 transition-transform duration-300">
-          <div className="w-14 h-14 rounded-2xl bg-emerald-100 flex items-center justify-center text-emerald-600 mb-4 shadow-inner">
+        <div className="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col justify-center items-start hover:-translate-y-1 transition-transform duration-300">
+          <div className="w-14 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600 mb-4 shadow-inner">
             <Activity className="w-7 h-7" />
           </div>
-          <p className="text-sm text-emerald-800 font-bold uppercase tracking-wider">Status</p>
+          <p className="text-sm text-gray-500 font-bold uppercase tracking-wider">Status</p>
           <p className="text-xl font-black text-emerald-600 mt-1">{statusLabel}</p>
         </div>
       </div>

@@ -30,6 +30,7 @@ function todayIso() {
 
 export default function Bills() {
   const [showModal, setShowModal] = useState(false);
+  const [confirmBill, setConfirmBill] = useState(null);
   const [bills, setBills] = useState([]);
   const [newBill, setNewBill] = useState({ title: '', amount: '', dueDate: '' });
   const [loading, setLoading] = useState(true);
@@ -182,12 +183,12 @@ export default function Bills() {
               <div className="flex flex-col sm:items-end space-y-2 w-full sm:w-auto">
                 <p className="font-extrabold text-lg text-gray-900">Rp {toNumber(bill.amount).toLocaleString('id-ID')}</p>
                 {bill.status === 'paid' ? (
-                  <button onClick={() => handleTogglePaid(bill)} className="flex items-center justify-center w-8 h-8 text-emerald-600 bg-emerald-50 rounded-full hover:bg-emerald-100 transition cursor-pointer" title="Lunas">
-                    <CheckCircle2 className="w-5 h-5" />
+                  <button onClick={() => setConfirmBill({ bill, action: 'cancel' })} className="flex items-center justify-center text-xs font-bold text-white bg-red-600 px-4 py-2 rounded-xl hover:bg-red-700 transition shadow-sm">
+                    Batalkan
                   </button>
                 ) : (
-                  <button onClick={() => handleTogglePaid(bill)} className="flex items-center justify-center w-8 h-8 text-orange-600 bg-orange-50 rounded-full hover:bg-orange-100 transition border border-orange-200" title="Bayar">
-                    <Circle className="w-5 h-5" />
+                  <button onClick={() => setConfirmBill({ bill, action: 'pay' })} className="flex items-center justify-center text-xs font-bold text-white bg-emerald-600 px-4 py-2 rounded-xl hover:bg-emerald-700 transition shadow-sm">
+                    Bayar
                   </button>
                 )}
               </div>
@@ -221,6 +222,35 @@ export default function Bills() {
                 <button onClick={() => setShowModal(false)} className="flex-1 py-3.5 text-gray-600 font-bold bg-gray-100 rounded-xl hover:bg-gray-200 transition">Batal</button>
                 <button onClick={handleSaveBill} disabled={saving} className="flex-1 py-3.5 text-white font-bold bg-emerald-600 rounded-xl hover:bg-emerald-700 shadow-md transition disabled:opacity-60 disabled:cursor-not-allowed">
                   {saving ? 'Menyimpan...' : 'Simpan'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {confirmBill && (
+        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-[2rem] w-full max-w-sm overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200">
+            <div className="p-5 text-white bg-emerald-600">
+              <h3 className="text-xl font-bold">{confirmBill.action === 'pay' ? 'Konfirmasi Bayar' : 'Batalkan Bayar'}</h3>
+            </div>
+            <div className="p-6 space-y-4 text-center">
+              <p className="text-gray-600 font-medium text-sm">
+                {confirmBill.action === 'pay' 
+                  ? `Apakah Anda yakin ingin menandai tagihan "${confirmBill.bill.title}" sebagai lunas?`
+                  : `Apakah Anda yakin ingin membatalkan status lunas untuk tagihan "${confirmBill.bill.title}"?`}
+              </p>
+              <div className="flex space-x-3 pt-2">
+                <button onClick={() => setConfirmBill(null)} className="flex-1 py-3 text-gray-600 font-bold bg-gray-100 rounded-xl hover:bg-gray-200 transition">Kembali</button>
+                <button 
+                  onClick={() => {
+                    handleTogglePaid(confirmBill.bill);
+                    setConfirmBill(null);
+                  }} 
+                  className="flex-1 py-3 text-white font-bold rounded-xl transition bg-emerald-600 hover:bg-emerald-700"
+                >
+                  Ya, Lanjutkan
                 </button>
               </div>
             </div>

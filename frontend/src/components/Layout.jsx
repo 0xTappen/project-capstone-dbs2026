@@ -22,7 +22,7 @@ export default function Layout() {
   const isMoreSectionActive = mobileMoreItems.some((item) => item.path === location.pathname);
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col md:flex-row font-sans">
+    <div className="h-screen overflow-hidden bg-gray-50 flex flex-col md:flex-row font-sans">
       {/* Desktop Sidebar */}
       <aside className="hidden md:flex flex-col w-64 bg-white border-r border-gray-200">
         <div className="p-6">
@@ -61,7 +61,7 @@ export default function Layout() {
           isChatbotPage ? 'overflow-hidden pb-0 md:overflow-y-auto' : 'overflow-y-auto pb-28 sm:pb-24'
         }`}
       >
-        <div className="absolute inset-0 bg-gradient-to-br from-emerald-50/50 to-white -z-10" />
+        <div className="absolute inset-0 bg-gradient-to-br from-emerald-50/50 to-white -z-10 layout-bg-gradient" />
         <Outlet />
       </main>
 

@@ -336,11 +336,15 @@ export default function AIChatbot() {
   return (
     <div className="p-0 h-[calc(100dvh-72px)] md:h-screen w-full relative">
       <div className="h-full flex gap-0">
-        {isDesktopSidebarOpen && (
-          <aside className="hidden md:flex w-[300px] bg-white border-r border-gray-100 p-4 flex-col overflow-hidden">
+        <aside 
+          className={`hidden md:flex flex-col bg-white border-gray-100 transition-all duration-300 ease-in-out overflow-hidden ${
+            isDesktopSidebarOpen ? 'w-[300px] border-r opacity-100' : 'w-0 border-r-0 opacity-0'
+          }`}
+        >
+          <div className="w-[300px] h-full p-4 flex flex-col">
             {renderSidebar()}
-          </aside>
-        )}
+          </div>
+        </aside>
 
         <section className="flex-1 bg-white flex flex-col overflow-hidden">
           <header className="p-4 md:p-6 border-b border-gray-100 flex flex-col md:flex-row md:items-center md:justify-between gap-3">

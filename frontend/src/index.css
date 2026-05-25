@@ -49,35 +49,35 @@ body {
 
 body.dark-mode {
   color-scheme: dark;
-  background-color: #0b1220 !important;
+  background-color: #111111 !important;
   color: #e2e8f0 !important;
 }
 
 body.dark-mode #root {
-  background-color: #0b1220;
+  background-color: #111111;
 }
 
 body.dark-mode .bg-gray-50 {
-  background-color: #0f172a !important;
+  background-color: #111111 !important;
 }
 
 body.dark-mode .bg-gray-100,
 body.dark-mode .bg-gray-50\/50,
 body.dark-mode .bg-gray-50\/70,
 body.dark-mode .bg-gray-50\/80 {
-  background-color: #172033 !important;
+  background-color: #1a1a1a !important;
 }
 
 body.dark-mode .bg-gray-200 {
-  background-color: #243046 !important;
+  background-color: #242424 !important;
 }
 
 body.dark-mode .bg-white {
-  background-color: #111b2d !important;
+  background-color: #1a1a1a !important;
 }
 
 body.dark-mode [class*='bg-white/'] {
-  background-color: rgba(17, 27, 45, 0.94) !important;
+  background-color: rgba(26, 26, 26, 0.94) !important;
 }
 
 body.dark-mode .text-gray-900 {
@@ -103,13 +103,13 @@ body.dark-mode .border-gray-50,
 body.dark-mode .border-gray-100,
 body.dark-mode .border-gray-200,
 body.dark-mode .border-gray-300 {
-  border-color: #334155 !important;
+  border-color: #2a2a2a !important;
 }
 
 body.dark-mode .divide-gray-50 > :not([hidden]) ~ :not([hidden]),
 body.dark-mode .divide-gray-100 > :not([hidden]) ~ :not([hidden]),
 body.dark-mode .divide-gray-200 > :not([hidden]) ~ :not([hidden]) {
-  border-color: #2a3a54 !important;
+  border-color: #2a2a2a !important;
 }
 
 body.dark-mode .bg-emerald-50 {
@@ -163,9 +163,9 @@ body.dark-mode .border-orange-100 {
 body.dark-mode input,
 body.dark-mode select,
 body.dark-mode textarea {
-  background-color: #172033 !important;
+  background-color: #1a1a1a !important;
   color: #e2e8f0 !important;
-  border-color: #334155 !important;
+  border-color: #2a2a2a !important;
 }
 
 body.dark-mode input::placeholder,
@@ -176,23 +176,23 @@ body.dark-mode textarea::placeholder {
 body.dark-mode input:focus,
 body.dark-mode select:focus,
 body.dark-mode textarea:focus {
-  background-color: #1b263b !important;
+  background-color: #242424 !important;
 }
 
 body.dark-mode [class*='hover:bg-gray-50']:hover {
-  background-color: #1b263b !important;
+  background-color: #242424 !important;
 }
 
 body.dark-mode [class*='hover:bg-white']:hover {
-  background-color: #1b263b !important;
+  background-color: #242424 !important;
 }
 
 body.dark-mode .from-white,
 body.dark-mode .via-white,
 body.dark-mode .to-white {
-  --tw-gradient-from: #111b2d var(--tw-gradient-from-position) !important;
-  --tw-gradient-via: #111b2d var(--tw-gradient-via-position) !important;
-  --tw-gradient-to: #111b2d var(--tw-gradient-to-position) !important;
+  --tw-gradient-from: #1a1a1a var(--tw-gradient-from-position) !important;
+  --tw-gradient-via: #1a1a1a var(--tw-gradient-via-position) !important;
+  --tw-gradient-to: #1a1a1a var(--tw-gradient-to-position) !important;
 }
 
 body.dark-mode .from-emerald-50,
@@ -228,7 +228,7 @@ body.dark-mode .to-red-50 {
 }
 
 body.dark-mode .transactions-list > :not([hidden]) ~ :not([hidden]) {
-  border-color: #23314a !important;
+  border-color: #2a2a2a !important;
 }
 
 body.dark-mode .shadow-sm,
@@ -236,17 +236,21 @@ body.dark-mode .shadow-md,
 body.dark-mode .shadow-lg,
 body.dark-mode .shadow-xl,
 body.dark-mode .shadow-2xl {
-  --tw-shadow-color: rgb(2 6 23 / 0.55) !important;
+  --tw-shadow-color: rgb(0 0 0 / 0.55) !important;
   --tw-shadow: 0 10px 30px -12px var(--tw-shadow-color) !important;
   box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow) !important;
 }
 
 body.dark-mode .recharts-cartesian-grid line {
-  stroke: #334155 !important;
+  stroke: #2a2a2a !important;
 }
 
 body.dark-mode .recharts-text tspan {
   fill: #cbd5e1 !important;
+}
+
+body.dark-mode .layout-bg-gradient {
+  display: none !important;
 }
 
 .no-scrollbar {
