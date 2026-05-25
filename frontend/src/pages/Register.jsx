@@ -42,7 +42,7 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center items-center p-4 relative overflow-hidden font-sans">
+    <div className="min-h-screen bg-gray-50 flex flex-col justify-center items-center p-4 relative overflow-hidden font-sans animate-in fade-in duration-500">
       <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-emerald-600 to-emerald-800 rounded-b-[4rem] z-0 shadow-lg"></div>
       
       <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl p-8 z-10 relative">

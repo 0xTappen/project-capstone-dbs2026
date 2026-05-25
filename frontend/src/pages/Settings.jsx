@@ -118,7 +118,7 @@ export default function Settings() {
   };
 
   return (
-    <div className="p-4 sm:p-6 md:p-8 w-full space-y-5 sm:space-y-6">
+    <div className="p-4 sm:p-6 md:p-8 w-full space-y-5 sm:space-y-6 animate-in fade-in duration-500">
       <header>
         <h1 className="text-2xl font-bold text-gray-900">Pengaturan</h1>
         <p className="text-gray-500 text-sm mt-1">Kelola akun, keamanan, dan preferensi sistem</p>
