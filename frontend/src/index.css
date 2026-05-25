@@ -286,7 +286,7 @@ body.dark-mode input:-webkit-autofill,
 body.dark-mode input:-webkit-autofill:hover, 
 body.dark-mode input:-webkit-autofill:focus, 
 body.dark-mode input:-webkit-autofill:active {
-  -webkit-box-shadow: 0 0 0 50px #1a1a1a inset !important;
+  -webkit-box-shadow: 0 0 0 50px #111111 inset !important;
   -webkit-text-fill-color: #f8fafc !important;
   transition: background-color 5000s ease-in-out 0s;
 }
