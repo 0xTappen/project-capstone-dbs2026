@@ -1,20 +1,45 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Eye, EyeOff, Lock, User, Mail } from 'lucide-react';
+import { Eye, EyeOff, Lock, User, Mail, ShieldAlert } from 'lucide-react';
 import api from '../lib/api';
 
 export default function Register() {
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [captcha, setCaptcha] = useState({ num1: 1, num2: 1 });
+  const [captchaInput, setCaptchaInput] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
+
+  useEffect(() => {
+    generateCaptcha();
+  }, []);
+
+  const generateCaptcha = () => {
+    setCaptcha({
+      num1: Math.floor(Math.random() * 10) + 1,
+      num2: Math.floor(Math.random() * 10) + 1,
+    });
+    setCaptchaInput('');
+  };
 
   const handleRegister = async (e) => {
     e.preventDefault();
     setError('');
 
+    if (password !== confirmPassword) {
+      setError('Password dan Konfirmasi Password tidak cocok.');
+      return;
+    }
+    if (parseInt(captchaInput) !== captcha.num1 + captcha.num2) {
+      setError('Jawaban keamanan salah. Silakan coba lagi.');
+      generateCaptcha();
+      return;
+    }
     if (password.length < 8) {
       setError('Password minimal 8 karakter.');
       return;
@@ -106,6 +131,43 @@ export default function Register() {
               >
                 {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-2">Konfirmasi Password</label>
+            <div className="relative">
+              <Lock className="w-5 h-5 text-gray-400 absolute left-4 top-1/2 transform -translate-y-1/2" />
+              <input 
+                type={showConfirmPassword ? "text" : "password"} 
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="w-full pl-12 pr-12 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:bg-white outline-none font-medium transition-colors" 
+                placeholder="••••••••" 
+                required
+              />
+              <button 
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-2">Keamanan: Berapa {captcha.num1} + {captcha.num2}?</label>
+            <div className="relative">
+              <ShieldAlert className="w-5 h-5 text-gray-400 absolute left-4 top-1/2 transform -translate-y-1/2" />
+              <input 
+                type="number" 
+                value={captchaInput}
+                onChange={(e) => setCaptchaInput(e.target.value)}
+                className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:bg-white outline-none font-medium transition-colors" 
+                placeholder="Masukkan hasil perhitungan" 
+                required
+              />
             </div>
           </div>
 

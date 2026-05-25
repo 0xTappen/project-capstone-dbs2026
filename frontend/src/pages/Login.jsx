@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Eye, EyeOff, Lock, User } from 'lucide-react';
+import { Eye, EyeOff, Lock, User, ShieldAlert } from 'lucide-react';
 import api from '../lib/api';
 
 function isProfileComplete(user) {
@@ -11,10 +11,24 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [captcha, setCaptcha] = useState({ num1: 1, num2: 1 });
+  const [captchaInput, setCaptchaInput] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
   const googleButtonRef = useRef(null);
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+
+  useEffect(() => {
+    generateCaptcha();
+  }, []);
+
+  const generateCaptcha = () => {
+    setCaptcha({
+      num1: Math.floor(Math.random() * 10) + 1,
+      num2: Math.floor(Math.random() * 10) + 1,
+    });
+    setCaptchaInput('');
+  };
 
   const finishLogin = useCallback((token, user) => {
     localStorage.setItem('token', token);
@@ -30,6 +44,12 @@ export default function Login() {
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
+
+    if (parseInt(captchaInput) !== captcha.num1 + captcha.num2) {
+      setError('Jawaban keamanan salah. Silakan coba lagi.');
+      generateCaptcha();
+      return;
+    }
 
     try {
       const response = await api.post('/auth/login', { email, password });
@@ -162,6 +182,21 @@ export default function Login() {
               >
                 {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-2">Keamanan: Berapa {captcha.num1} + {captcha.num2}?</label>
+            <div className="relative">
+              <ShieldAlert className="w-5 h-5 text-gray-400 absolute left-4 top-1/2 transform -translate-y-1/2" />
+              <input 
+                type="number" 
+                value={captchaInput}
+                onChange={(e) => setCaptchaInput(e.target.value)}
+                className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:bg-white outline-none font-medium transition-colors" 
+                placeholder="Masukkan hasil perhitungan" 
+                required
+              />
             </div>
           </div>
 
