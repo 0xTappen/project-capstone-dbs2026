@@ -116,7 +116,7 @@ export default function Bills() {
   const currentMonthTitle = new Date().toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
 
   return (
-    <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6">
+    <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6 animate-in fade-in duration-500">
       <header className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Tagihan & Pembayaran</h1>
