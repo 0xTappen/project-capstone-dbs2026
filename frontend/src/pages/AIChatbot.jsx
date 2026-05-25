@@ -277,10 +277,10 @@ export default function AIChatbot() {
       <button
         onClick={handleCreateSession}
         disabled={isCreatingSession}
-        className="w-full flex items-center justify-center gap-2 bg-emerald-600 text-white py-3 rounded-xl font-bold hover:bg-emerald-700 transition disabled:opacity-60"
+        className="w-full flex items-center justify-center bg-emerald-600 text-white py-3 rounded-xl hover:bg-emerald-700 transition disabled:opacity-60"
+        title="New Chat"
       >
-        <Plus className="w-5 h-5" />
-        {isCreatingSession ? 'Membuat...' : 'New Chat'}
+        <Plus className="w-6 h-6" />
       </button>
 
       <div className="mt-4 overflow-y-auto space-y-2 pr-1 no-scrollbar">
@@ -334,15 +334,15 @@ export default function AIChatbot() {
   );
 
   return (
-    <div className="p-0 md:p-6 max-w-7xl mx-auto h-[calc(100dvh-72px)] md:h-[calc(100vh-72px)] relative">
-      <div className="h-full flex gap-4">
+    <div className="p-0 h-[calc(100dvh-72px)] md:h-screen w-full relative">
+      <div className="h-full flex gap-0">
         {isDesktopSidebarOpen && (
-          <aside className="hidden md:flex w-[300px] bg-white rounded-3xl border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-4 flex-col overflow-hidden">
+          <aside className="hidden md:flex w-[300px] bg-white border-r border-gray-100 p-4 flex-col overflow-hidden">
             {renderSidebar()}
           </aside>
         )}
 
-        <section className="flex-1 bg-white rounded-none md:rounded-3xl border-0 md:border border-gray-100 shadow-none md:shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col overflow-hidden">
+        <section className="flex-1 bg-white flex flex-col overflow-hidden">
           <header className="p-4 md:p-6 border-b border-gray-100 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
             <div className="flex items-start gap-3">
               <button

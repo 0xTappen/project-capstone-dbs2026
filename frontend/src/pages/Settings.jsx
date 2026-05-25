@@ -12,7 +12,7 @@ function getThemeModeFromStorage() {
   if (stored === 'light' || stored === 'dark' || stored === 'system') {
     return stored;
   }
-  return 'system';
+  return 'dark';
 }
 
 function getResolvedSystemTheme() {
@@ -118,7 +118,7 @@ export default function Settings() {
   };
 
   return (
-    <div className="p-4 sm:p-6 md:p-8 max-w-5xl mx-auto space-y-5 sm:space-y-6">
+    <div className="p-4 sm:p-6 md:p-8 w-full space-y-5 sm:space-y-6">
       <header>
         <h1 className="text-2xl font-bold text-gray-900">Pengaturan</h1>
         <p className="text-gray-500 text-sm mt-1">Kelola akun, keamanan, dan preferensi sistem</p>
@@ -201,9 +201,6 @@ export default function Settings() {
                     </div>
                   </div>
                   <div className="text-right shrink-0">
-                    <p className={`text-xs font-bold ${activeTheme === 'dark' ? 'text-emerald-700' : 'text-gray-700'}`}>
-                      {activeTheme === 'dark' ? 'Dark Aktif' : 'Light Aktif'}
-                    </p>
                   </div>
                 </div>
 
@@ -252,9 +249,8 @@ export default function Settings() {
           </div>
 
           <div className="p-6 mt-auto">
-            <button onClick={handleLogout} className="w-full flex items-center justify-center space-x-2 bg-red-50 text-red-600 py-3.5 rounded-xl font-bold hover:bg-red-100 transition border border-red-100 shadow-sm">
-              <LogOut className="w-5 h-5" />
-              <span>Keluar Akun</span>
+            <button onClick={handleLogout} className="w-full flex items-center justify-center bg-red-50 text-red-600 py-3.5 rounded-xl hover:bg-red-100 transition border border-red-100 shadow-sm" title="Keluar Akun">
+              <LogOut className="w-6 h-6" />
             </button>
           </div>
         </div>

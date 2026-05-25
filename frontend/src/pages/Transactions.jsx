@@ -244,10 +244,10 @@ export default function Transactions() {
             setTransactionType('Pemasukan');
             setShowModal(true);
           }}
-          className="w-full sm:w-auto flex items-center justify-center space-x-2 bg-gradient-to-r from-emerald-500 to-emerald-700 text-white px-6 py-3 rounded-2xl font-bold hover:shadow-lg hover:shadow-emerald-500/30 transition-all transform hover:-translate-y-0.5"
+          className="w-12 h-12 flex items-center justify-center bg-gradient-to-r from-emerald-500 to-emerald-700 text-white rounded-2xl hover:shadow-lg hover:shadow-emerald-500/30 transition-all transform hover:-translate-y-0.5"
+          title="Catat Transaksi"
         >
-          <Plus className="w-5 h-5" />
-          <span>Catat Transaksi</span>
+          <Plus className="w-6 h-6" />
         </button>
       </header>
 
@@ -266,20 +266,20 @@ export default function Transactions() {
               setTransactionType('Pemasukan');
               setShowModal(true);
             }}
-            className="flex-1 md:flex-none flex items-center justify-center space-x-2 bg-emerald-50 text-emerald-700 px-6 py-3.5 rounded-2xl font-bold hover:bg-emerald-100 transition shadow-sm"
+            className="flex-1 md:flex-none flex items-center justify-center p-3.5 bg-emerald-600 text-white rounded-2xl hover:bg-emerald-700 transition shadow-md"
+            title="Pemasukan"
           >
-            <ArrowUpCircle className="w-5 h-5" />
-            <span>Pemasukan</span>
+            <ArrowUpCircle className="w-6 h-6" />
           </button>
           <button
             onClick={() => {
               setTransactionType('Pengeluaran');
               setShowModal(true);
             }}
-            className="flex-1 md:flex-none flex items-center justify-center space-x-2 bg-red-50 text-red-700 px-6 py-3.5 rounded-2xl font-bold hover:bg-red-100 transition shadow-sm"
+            className="flex-1 md:flex-none flex items-center justify-center p-3.5 bg-red-600 text-white rounded-2xl hover:bg-red-700 transition shadow-md"
+            title="Pengeluaran"
           >
-            <ArrowDownCircle className="w-5 h-5" />
-            <span>Pengeluaran</span>
+            <ArrowDownCircle className="w-6 h-6" />
           </button>
         </div>
       </div>

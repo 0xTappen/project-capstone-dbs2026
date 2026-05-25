@@ -227,10 +227,10 @@ export default function Reports() {
         <button
           onClick={exportToPDF}
           disabled={exporting || loading}
-          className="w-full md:w-auto justify-center flex items-center space-x-2 bg-indigo-600 text-white px-5 py-2.5 rounded-xl font-bold hover:bg-indigo-700 transition shadow-lg shadow-indigo-200 disabled:opacity-60 disabled:cursor-not-allowed"
+          className="w-12 h-12 flex items-center justify-center bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition shadow-lg shadow-emerald-200 disabled:opacity-60 disabled:cursor-not-allowed"
+          title="Export PDF"
         >
-          <Download className="w-5 h-5" />
-          <span>{exporting ? 'Exporting...' : 'Export PDF'}</span>
+          <Download className="w-6 h-6" />
         </button>
       </header>
 

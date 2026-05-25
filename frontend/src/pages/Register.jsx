@@ -15,6 +15,23 @@ export default function Register() {
     e.preventDefault();
     setError('');
 
+    if (password.length < 8) {
+      setError('Password minimal 8 karakter.');
+      return;
+    }
+    if (!/(?=.*[a-z])/.test(password)) {
+      setError('Password harus mengandung huruf kecil.');
+      return;
+    }
+    if (!/(?=.*[A-Z])/.test(password)) {
+      setError('Password harus mengandung huruf besar.');
+      return;
+    }
+    if (!/(?=.*\d)/.test(password)) {
+      setError('Password harus mengandung angka.');
+      return;
+    }
+
     try {
       await api.post('/auth/register', { name, email, password });
       navigate('/login');

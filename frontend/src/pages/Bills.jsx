@@ -130,13 +130,13 @@ export default function Bills() {
           <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1">Total</p>
           <p className="text-sm font-extrabold text-gray-900">Rp {totalBill.toLocaleString('id-ID')}</p>
         </div>
-        <div className="rounded-xl bg-emerald-50 px-2 py-3 text-center border border-emerald-100">
-          <p className="text-[10px] font-bold text-emerald-700 uppercase tracking-wide mb-1">Dibayar</p>
-          <p className="text-sm font-extrabold text-emerald-600">Rp {totalPaid.toLocaleString('id-ID')}</p>
+        <div className="rounded-xl bg-emerald-50 px-2 py-3 text-center border border-emerald-200">
+          <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-wide mb-1">Dibayar</p>
+          <p className="text-sm font-extrabold text-emerald-500">Rp {totalPaid.toLocaleString('id-ID')}</p>
         </div>
-        <div className="rounded-xl bg-red-50 px-2 py-3 text-center border border-red-100">
-          <p className="text-[10px] font-bold text-red-700 uppercase tracking-wide mb-1">Belum</p>
-          <p className="text-sm font-extrabold text-red-600">Rp {totalUnpaid.toLocaleString('id-ID')}</p>
+        <div className="rounded-xl bg-red-50 px-2 py-3 text-center border border-red-200">
+          <p className="text-[10px] font-bold text-red-500 uppercase tracking-wide mb-1">Belum</p>
+          <p className="text-sm font-extrabold text-red-500">Rp {totalUnpaid.toLocaleString('id-ID')}</p>
         </div>
       </div>
 
@@ -145,21 +145,20 @@ export default function Bills() {
           <p className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-2">Total Tagihan</p>
           <p className="text-2xl md:text-3xl font-extrabold text-gray-900">Rp {totalBill.toLocaleString('id-ID')}</p>
         </div>
-        <div className="bg-emerald-50 border border-emerald-100 p-6 rounded-[2rem] shadow-sm flex flex-col justify-center items-center text-center">
-          <p className="text-sm font-bold text-emerald-700 uppercase tracking-wider mb-2">Sudah Dibayar</p>
-          <p className="text-2xl md:text-3xl font-extrabold text-emerald-600">Rp {totalPaid.toLocaleString('id-ID')}</p>
+        <div className="bg-emerald-50 border border-emerald-200 p-6 rounded-[2rem] shadow-sm flex flex-col justify-center items-center text-center">
+          <p className="text-sm font-bold text-emerald-500 uppercase tracking-wider mb-2">Sudah Dibayar</p>
+          <p className="text-2xl md:text-3xl font-extrabold text-emerald-500">Rp {totalPaid.toLocaleString('id-ID')}</p>
         </div>
-        <div className="bg-red-50 border border-red-100 p-6 rounded-[2rem] shadow-sm flex flex-col justify-center items-center text-center">
-          <p className="text-sm font-bold text-red-700 uppercase tracking-wider mb-2">Belum Dibayar</p>
-          <p className="text-2xl md:text-3xl font-extrabold text-red-600">Rp {totalUnpaid.toLocaleString('id-ID')}</p>
+        <div className="bg-red-50 border border-red-200 p-6 rounded-[2rem] shadow-sm flex flex-col justify-center items-center text-center">
+          <p className="text-sm font-bold text-red-500 uppercase tracking-wider mb-2">Belum Dibayar</p>
+          <p className="text-2xl md:text-3xl font-extrabold text-red-500">Rp {totalUnpaid.toLocaleString('id-ID')}</p>
         </div>
       </div>
 
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mt-8 mb-4">
         <h3 className="text-lg sm:text-xl font-bold text-gray-900">{`Daftar Tagihan ${currentMonthTitle}`}</h3>
-        <button onClick={() => setShowModal(true)} className="w-full sm:w-auto flex items-center justify-center space-x-2 bg-emerald-600 text-white px-5 py-2.5 rounded-xl font-bold hover:bg-emerald-700 transition shadow-sm">
-          <Plus className="w-5 h-5" />
-          <span>Tambah Tagihan</span>
+        <button onClick={() => setShowModal(true)} className="w-12 h-12 flex items-center justify-center bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition shadow-sm" title="Tambah Tagihan">
+          <Plus className="w-6 h-6" />
         </button>
       </div>
 
@@ -183,14 +182,12 @@ export default function Bills() {
               <div className="flex flex-col sm:items-end space-y-2 w-full sm:w-auto">
                 <p className="font-extrabold text-lg text-gray-900">Rp {toNumber(bill.amount).toLocaleString('id-ID')}</p>
                 {bill.status === 'paid' ? (
-                  <button onClick={() => handleTogglePaid(bill)} className="flex items-center text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full hover:bg-emerald-100 transition cursor-pointer">
-                    <CheckCircle2 className="w-4 h-4 mr-1" />
-                    Lunas
+                  <button onClick={() => handleTogglePaid(bill)} className="flex items-center justify-center w-8 h-8 text-emerald-600 bg-emerald-50 rounded-full hover:bg-emerald-100 transition cursor-pointer" title="Lunas">
+                    <CheckCircle2 className="w-5 h-5" />
                   </button>
                 ) : (
-                  <button onClick={() => handleTogglePaid(bill)} className="flex items-center text-xs font-bold text-orange-600 bg-orange-50 px-3 py-1.5 rounded-full hover:bg-orange-100 transition border border-orange-200">
-                    <Circle className="w-4 h-4 mr-1" />
-                    Bayar
+                  <button onClick={() => handleTogglePaid(bill)} className="flex items-center justify-center w-8 h-8 text-orange-600 bg-orange-50 rounded-full hover:bg-orange-100 transition border border-orange-200" title="Bayar">
+                    <Circle className="w-5 h-5" />
                   </button>
                 )}
               </div>

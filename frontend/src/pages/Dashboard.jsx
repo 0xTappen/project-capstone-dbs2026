@@ -139,9 +139,8 @@ export default function Dashboard() {
           <p className="text-gray-500 font-medium mt-1">Selamat datang kembali, {userProfile.name}!</p>
         </div>
         <div className="flex items-center justify-between md:justify-end w-full md:w-auto gap-3">
-          <Link to="/transactions" className="flex items-center justify-center space-x-2 bg-white border border-gray-200 text-gray-700 px-4 py-2 rounded-xl font-bold hover:bg-gray-50 transition shadow-sm w-full sm:w-auto">
-            <Plus className="w-5 h-5 text-emerald-600" />
-            <span>Catat Transaksi</span>
+          <Link to="/transactions" className="w-12 h-12 flex items-center justify-center bg-white border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 transition shadow-sm" title="Catat Transaksi">
+            <Plus className="w-6 h-6 text-emerald-600" />
           </Link>
           <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 font-bold border-2 border-emerald-500 overflow-hidden shadow-sm hover:scale-105 transition-transform cursor-pointer">
             <img src={getProfileAvatarSrc(userProfile)} alt="User" className="w-full h-full object-cover" />
@@ -149,9 +148,9 @@ export default function Dashboard() {
         </div>
       </header>
 
-      <div className="bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-800 rounded-[2.5rem] p-6 sm:p-8 md:p-10 text-white shadow-2xl shadow-emerald-600/30 relative overflow-hidden group">
+      <div className="bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-800 rounded-[2.5rem] p-6 sm:p-8 md:p-10 text-white shadow-2xl shadow-blue-600/30 relative overflow-hidden group">
         <div className="absolute top-0 right-0 w-80 h-80 bg-white/10 rounded-full -mr-20 -mt-20 blur-3xl group-hover:bg-white/20 transition-all duration-700"></div>
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-emerald-400/20 rounded-full -ml-16 -mb-16 blur-2xl group-hover:bg-emerald-400/30 transition-all duration-700"></div>
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-400/20 rounded-full -ml-16 -mb-16 blur-2xl group-hover:bg-blue-400/30 transition-all duration-700"></div>
 
         <div className="relative z-10">
           <div className="flex justify-between items-start mb-6 gap-4">

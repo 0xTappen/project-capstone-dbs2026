@@ -135,10 +135,10 @@ export default function Budget() {
         </div>
         <button
           onClick={() => setShowAddForm(!showAddForm)}
-          className="w-full sm:w-auto flex items-center justify-center space-x-2 bg-emerald-600 text-white px-5 py-2.5 rounded-xl font-bold hover:bg-emerald-700 transition shadow-lg shadow-emerald-200"
+          className="hidden sm:flex w-12 h-12 items-center justify-center bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition shadow-lg shadow-emerald-200"
+          title="Set Anggaran"
         >
-          <Plus className="w-5 h-5" />
-          <span>Set Anggaran</span>
+          <Plus className="w-6 h-6" />
         </button>
       </header>
 
@@ -249,14 +249,25 @@ export default function Budget() {
             <p className="text-gray-500 font-medium mb-4">Belum ada anggaran yang diatur untuk bulan ini.</p>
             <button
               onClick={() => setShowAddForm(true)}
-              className="bg-white border border-gray-200 text-gray-700 px-5 py-2 rounded-xl font-bold hover:bg-gray-50 transition shadow-sm"
+              className="w-12 h-12 flex items-center justify-center bg-white border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 transition shadow-sm"
+              title="Mulai Set Anggaran"
             >
-              Mulai Set Anggaran
+              <Plus className="w-6 h-6" />
             </button>
           </div>
         )}
 
         {loading && <div className="col-span-full py-12 text-center text-gray-500 font-bold">Memuat anggaran...</div>}
+      </div>
+
+      <div className="sm:hidden fixed bottom-20 right-4 z-40">
+        <button
+          onClick={() => setShowAddForm(!showAddForm)}
+          className="w-14 h-14 flex items-center justify-center bg-emerald-600 text-white rounded-full shadow-lg shadow-emerald-200 hover:bg-emerald-700 transition"
+          title="Set Anggaran"
+        >
+          <Plus className="w-6 h-6" />
+        </button>
       </div>
     </div>
   );
